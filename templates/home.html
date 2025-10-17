@@ -1,0 +1,50 @@
+{% extends "base.html" %} {% block title %}Home - Goodness Grid{% endblock %} {%
+block content %}
+<section class="hero-section">
+  <div class="container text-center">
+    <h1 class="display-3 fw-bold mb-4">Welcome to Goodness Grid</h1>
+    <p class="lead mb-4">A Network of Good Deeds</p>
+    <div class="d-flex justify-content-center gap-3">
+      <a href="/donate" class="btn btn-success btn-lg">Donate Now</a>
+      <a href="/about" class="btn btn-success btn-lg">Learn More</a>
+    </div>
+  </div>
+</section>
+
+<section class="container my-5">
+  <h2 class="text-center mb-5">What We Do</h2>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="feature-icon mb-3">🎁</div>
+          <h3 class="card-title h5">For Donors</h3>
+          <p class="card-text">
+            Donate food, clothes, medicines, books, electronics, or services.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="feature-icon mb-3">🏥</div>
+          <h3 class="card-title h5">For NGOs</h3>
+          <p class="card-text">
+            Browse and claim donations that match your needs.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="feature-icon mb-3">🚚</div>
+          <h3 class="card-title h5">For Volunteers</h3>
+          <p class="card-text">Help manage pickup and delivery logistics.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

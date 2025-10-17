@@ -1,0 +1,218 @@
+{% extends "base.html" %} {% block title %}Post Donation - Goodness Grid{%
+endblock %} {% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+          <h3 class="mb-0">📦 Post a Donation</h3>
+        </div>
+        <div class="card-body p-4">
+          <p class="text-muted mb-4">
+            Fill in the details below to donate items to those in need. Your
+            generosity makes a difference!
+          </p>
+
+          <!-- Success/Error Messages -->
+          {% if success %}
+          <div
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            <strong>Success!</strong> {{ success }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+            ></button>
+          </div>
+          {% endif %} {% if error %}
+          <div
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+          >
+            <strong>Error!</strong> {{ error }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+            ></button>
+          </div>
+          {% endif %}
+
+          <!-- Donation Form -->
+          <form action="/post-donation" method="POST">
+            <!-- Donation Type -->
+            <div class="mb-4">
+              <label for="type" class="form-label">
+                <strong>Donation Type</strong>
+                <span class="text-danger">*</span>
+              </label>
+              <select
+                class="form-select form-select-lg"
+                id="type"
+                name="type"
+                required
+              >
+                <option value="">Choose donation type...</option>
+                <option value="food">🍽️ Food</option>
+                <option value="clothes">👕 Clothes</option>
+                <option value="books">📚 Books</option>
+                <option value="medicine">💊 Medicine</option>
+                <option value="electronics">💻 Electronics</option>
+                <option value="money">💰 Money</option>
+                <option value="others">📦 Others</option>
+              </select>
+            </div>
+
+            <!-- Description -->
+            <div class="mb-4">
+              <label for="description" class="form-label">
+                <strong>Description</strong> <span class="text-danger">*</span>
+              </label>
+              <textarea
+                class="form-control"
+                id="description"
+                name="description"
+                rows="4"
+                placeholder="Describe your donation in detail. E.g., '50 plates of freshly cooked veg meals' or '20 winter jackets in good condition'"
+                required
+              ></textarea>
+              <small class="text-muted"
+                >Be as detailed as possible to help receivers</small
+              >
+            </div>
+
+            <!-- Quantity -->
+            <div class="mb-4">
+              <label for="quantity" class="form-label">
+                <strong>Quantity</strong> <span class="text-danger">*</span>
+              </label>
+              <input
+                type="text"
+                class="form-control"
+                id="quantity"
+                name="quantity"
+                placeholder="E.g., '50 plates', '20 pieces', '5 kg'"
+                required
+              />
+              <small class="text-muted"
+                >Specify unit (plates, kg, pieces, etc.)</small
+              >
+            </div>
+
+            <!-- Pickup Address -->
+            <div class="mb-4">
+              <label for="pickup_address" class="form-label">
+                <strong>Pickup Address</strong>
+                <span class="text-danger">*</span>
+              </label>
+              <textarea
+                class="form-control"
+                id="pickup_address"
+                name="pickup_address"
+                rows="3"
+                placeholder="Full address where items can be picked up from"
+                required
+              ></textarea>
+            </div>
+
+            <!-- Pickup Time -->
+            <div class="mb-4">
+              <label for="pickup_time" class="form-label">
+                <strong>Available for Pickup</strong>
+              </label>
+              <input
+                type="datetime-local"
+                class="form-control"
+                id="pickup_time"
+                name="pickup_time"
+              />
+              <small class="text-muted"
+                >When can volunteers pick this up? (Optional)</small
+              >
+            </div>
+
+            <!-- Expiry Date (for food items) -->
+            <div class="mb-4">
+              <label for="expiry_date" class="form-label">
+                <strong>Expiry Date</strong> (For food/medicine)
+              </label>
+              <input
+                type="date"
+                class="form-control"
+                id="expiry_date"
+                name="expiry_date"
+              />
+              <small class="text-muted"
+                >When does this expire? (Optional, mainly for perishable
+                items)</small
+              >
+            </div>
+
+            <!-- Additional Notes -->
+            <div class="mb-4">
+              <label for="notes" class="form-label">
+                <strong>Additional Notes</strong>
+              </label>
+              <textarea
+                class="form-control"
+                id="notes"
+                name="notes"
+                rows="2"
+                placeholder="Any special instructions or requirements"
+              ></textarea>
+            </div>
+
+            <!-- Info Box -->
+            <div class="alert alert-info">
+              <h6><strong>ℹ️ Please Note:</strong></h6>
+              <ul class="mb-0 small">
+                <li>All donations are reviewed before being published</li>
+                <li>Ensure items are in good, usable condition</li>
+                <li>
+                  For food donations, ensure proper packaging and freshness
+                </li>
+                <li>You'll be notified when an NGO claims your donation</li>
+              </ul>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+              <a href="/dashboard" class="btn btn-secondary btn-lg">Cancel</a>
+              <button type="submit" class="btn btn-success btn-lg">
+                📤 Post Donation
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Help Section -->
+      <div class="card mt-4">
+        <div class="card-body">
+          <h5>💡 Tips for Better Donations</h5>
+          <ul>
+            <li>
+              <strong>Be Specific:</strong> Detailed descriptions help receivers
+              understand what you're offering
+            </li>
+            <li>
+              <strong>Quality Matters:</strong> Only donate items in good,
+              usable condition
+            </li>
+            <li>
+              <strong>Timely:</strong> Post food donations when they're fresh
+              and can be collected quickly
+            </li>
+            <li>
+              <strong>Responsive:</strong> Respond quickly when an NGO shows
+              interest
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

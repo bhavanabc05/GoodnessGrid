@@ -1,0 +1,49 @@
+{% extends "base.html" %} {% block title %}Transactions - Admin{% endblock %} {%
+block content %}
+<div class="container my-5">
+  <h1 class="mb-4">📊 All Transactions</h1>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-success">
+            <tr>
+              <th>ID</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th>Donor</th>
+              <th>NGO</th>
+              <th>Volunteer</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in transactions %}
+            <tr>
+              <td>{{ t.transaction_id }}</td>
+              <td>{{ t.type|capitalize }}</td>
+              <td>{{ t.description[:40] }}...</td>
+              <td>{{ t.donor_name }}</td>
+              <td>{{ t.ngo_name }}</td>
+              <td>
+                {{ t.volunteer_name if t.volunteer_name else 'Not assigned' }}
+              </td>
+              <td>
+                <span
+                  class="badge {% if t.status == 'completed' %}bg-success {% elif t.status == 'in_progress' %}bg-warning {% else %}bg-secondary {% endif %}"
+                >
+                  {{ t.status|capitalize }}
+                </span>
+              </td>
+              <td>{{ t.created_at.strftime('%b %d') }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

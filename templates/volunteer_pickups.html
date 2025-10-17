@@ -1,0 +1,165 @@
+{% extends "base.html" %} {% block title %}Volunteer Pickups - Goodness Grid{%
+endblock %} {% block content %}
+<div class="container my-5">
+  <h1 class="mb-4">🚚 Volunteer Pickup Management</h1>
+
+  <!-- MY ACTIVE TASKS -->
+  <div class="card mb-4">
+    <div class="card-header bg-warning text-white">
+      <h4 class="mb-0">My Active Tasks ({{ my_assignments|length }})</h4>
+    </div>
+    <div class="card-body">
+      {% if my_assignments %}
+      <div class="row g-3">
+        {% for task in my_assignments %} {% if task.status == 'in_progress' %}
+        <div class="col-md-6">
+          <div class="card border-warning">
+            <div class="card-body">
+              <h5>
+                {% if task.type == 'food' %}🍽️ {% elif task.type == 'clothes'
+                %}👕 {% elif task.type == 'books' %}📚 {% elif task.type ==
+                'medicine' %}💊 {% else %}📦{% endif %} {{ task.type|capitalize
+                }}
+              </h5>
+              <p><strong>{{ task.description }}</strong></p>
+              <p><strong>Quantity:</strong> {{ task.quantity }}</p>
+
+              <hr />
+
+              <h6>📍 Pickup From:</h6>
+              <p class="mb-1"><strong>{{ task.donor_name }}</strong></p>
+              <p class="mb-1">📞 {{ task.donor_phone }}</p>
+              <p>📍 {{ task.pickup_address }}</p>
+
+              <hr />
+
+              <h6>🏥 Deliver To:</h6>
+              <p class="mb-1"><strong>{{ task.ngo_name }}</strong></p>
+              <p>📞 {{ task.ngo_phone }}</p>
+
+              <form
+                action="/complete-delivery/{{ task.transaction_id }}"
+                method="POST"
+                class="mt-3"
+              >
+                <button type="submit" class="btn btn-success w-100">
+                  ✅ Mark as Delivered
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endif %} {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-center text-muted">
+        No active tasks yet. Accept a pickup from below!
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- AVAILABLE PICKUPS -->
+  <div class="card">
+    <div class="card-header bg-success text-white">
+      <h4 class="mb-0">Available Pickups ({{ pending_pickups|length }})</h4>
+    </div>
+    <div class="card-body">
+      {% if pending_pickups %}
+      <div class="row g-3">
+        {% for pickup in pending_pickups %}
+        <div class="col-md-6">
+          <div class="card border-success">
+            <div class="card-body">
+              <h5>
+                {% if pickup.type == 'food' %}🍽️ {% elif pickup.type ==
+                'clothes' %}👕 {% elif pickup.type == 'books' %}📚 {% elif
+                pickup.type == 'medicine' %}💊 {% else %}📦{% endif %} {{
+                pickup.type|capitalize }}
+              </h5>
+              <p><strong>{{ pickup.description }}</strong></p>
+              <p><strong>Quantity:</strong> {{ pickup.quantity }}</p>
+
+              <hr />
+
+              <h6>📍 Pickup From:</h6>
+              <p class="mb-1"><strong>{{ pickup.donor_name }}</strong></p>
+              <p class="mb-1">📞 {{ pickup.donor_phone }}</p>
+              <p>📍 {{ pickup.pickup_address }}</p>
+
+              <hr />
+
+              <h6>🏥 Deliver To:</h6>
+              <p class="mb-1"><strong>{{ pickup.ngo_name }}</strong></p>
+              <p>📞 {{ pickup.ngo_phone }}</p>
+
+              <p class="text-muted">
+                <small
+                  >Posted: {{ pickup.created_at.strftime('%b %d, %Y') }}</small
+                >
+              </p>
+
+              <form
+                action="/accept-pickup/{{ pickup.transaction_id }}"
+                method="POST"
+                class="mt-3"
+              >
+                <button type="submit" class="btn btn-success w-100">
+                  🚚 Accept This Pickup
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-center text-muted">
+        No pickups available right now. Check back later!
+      </p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- COMPLETED DELIVERIES -->
+  <div class="card mt-4">
+    <div class="card-header bg-info text-white">
+      <h4 class="mb-0">My Completed Deliveries</h4>
+    </div>
+    <div class="card-body">
+      {% set completed = my_assignments|selectattr('status', 'equalto',
+      'completed')|list %} {% if completed %}
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Description</th>
+              <th>From</th>
+              <th>To</th>
+              <th>Completed</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for task in completed %}
+            <tr>
+              <td>{{ task.type|capitalize }}</td>
+              <td>{{ task.description[:50] }}</td>
+              <td>{{ task.donor_name }}</td>
+              <td>{{ task.ngo_name }}</td>
+              <td>
+                {{ task.completed_at.strftime('%b %d, %Y') if task.completed_at
+                else 'N/A' }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="text-center text-muted">No completed deliveries yet</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

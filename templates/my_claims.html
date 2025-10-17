@@ -1,0 +1,58 @@
+{% extends "base.html" %} {% block title %}My Claims - Goodness Grid{% endblock
+%} {% block content %}
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>📊 My Claimed Donations</h1>
+    <a href="/dashboard" class="btn btn-outline-success">Back to Dashboard</a>
+  </div>
+
+  {% if donations %}
+  <p class="text-muted mb-4">
+    You have claimed {{ donations|length }} donation(s)
+  </p>
+
+  <div class="row g-4">
+    {% for donation in donations %}
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-white">
+          <h5 class="mb-0">
+            {% if donation.type == 'food' %}🍽️ {% elif donation.type ==
+            'clothes' %}👕 {% elif donation.type == 'books' %}📚 {% elif
+            donation.type == 'medicine' %}💊 {% elif donation.type ==
+            'electronics' %}💻 {% else %}📦 {% endif %} {{
+            donation.type|capitalize }} - {{ donation.status|upper }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Description:</strong> {{ donation.description }}</p>
+          <p><strong>Quantity:</strong> {{ donation.quantity }}</p>
+          <p><strong>Donor:</strong> {{ donation.donor_name }}</p>
+          <p><strong>Pickup Address:</strong> {{ donation.pickup_address }}</p>
+          <p>
+            <strong>Transaction Status:</strong>
+            <span class="badge bg-info"
+              >{{ donation.transaction_status|capitalize }}</span
+            >
+          </p>
+          <p class="text-muted">
+            <small
+              >Claimed on: {{ donation.created_at.strftime('%b %d, %Y')
+              }}</small
+            >
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="alert alert-info text-center">
+    <h4>You haven't claimed any donations yet</h4>
+    <p>Browse available donations and claim items that match your needs!</p>
+    <a href="/donations" class="btn btn-success mt-2">Browse Donations</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

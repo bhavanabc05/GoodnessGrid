@@ -1,0 +1,297 @@
+{% extends "base.html" %} {% block title %}Dashboard - Goodness Grid{% endblock
+%} {% block content %}
+<div class="container my-5">
+  <!-- Welcome Section -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="alert alert-success">
+        <h3 class="mb-0">👋 Welcome back, {{ session.fullname }}!</h3>
+        <p class="mb-0">
+          You are logged in as a <strong>{{ session.role|upper }}</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role-Specific Dashboard Content -->
+
+  {% if session.role == 'donor' %}
+  <!-- DONOR DASHBOARD -->
+  <div class="row g-4 mb-4">
+    <!-- Quick Stats -->
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-success">{{ my_donations_count }}</h2>
+          <p class="text-muted mb-0">Total Donations</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-warning">{{ available_count }}</h2>
+          <p class="text-muted mb-0">Available</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-info">{{ claimed_count }}</h2>
+          <p class="text-muted mb-0">Claimed</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-primary">{{ completed_count }}</h2>
+          <p class="text-muted mb-0">Completed</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row g-4">
+    <div class="col-12">
+      <h4 class="mb-3">Quick Actions</h4>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">📦</div>
+          <h5>Post New Donation</h5>
+          <p class="text-muted">Share your surplus items with those in need</p>
+          <a href="/post-donation" class="btn btn-success">Post Donation</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">📋</div>
+          <h5>My Donations</h5>
+          <p class="text-muted">View and manage your posted donations</p>
+          <a href="/my-donations" class="btn btn-primary">View Donations</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">🔍</div>
+          <h5>Browse All</h5>
+          <p class="text-muted">See what others are donating</p>
+          <a href="/donations" class="btn btn-danger">Browse</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% elif session.role == 'receiver' or session.role == 'ngo' %}
+  <!-- NGO/RECEIVER DASHBOARD -->
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <h4 class="mb-3">Available Donations</h4>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-success">{{ total_donations }}</h2>
+          <p class="text-muted mb-0">Total Available</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-warning">{{ claimed_count }}</h2>
+          <p class="text-muted mb-0">Claimed by You</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-info">{{ completed_count }}</h2>
+          <p class="text-muted mb-0">Completed</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">🎁</div>
+          <h5>Browse Donations</h5>
+          <p class="text-muted">Find donations that match your needs</p>
+          <a href="/donations" class="btn btn-success">Browse Now</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">📊</div>
+          <h5>My Claims</h5>
+          <p class="text-muted">View donations you've claimed</p>
+          <a href="/my-claims" class="btn btn-success">View My Claims</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% elif session.role == 'volunteer' %}
+  <!-- VOLUNTEER DASHBOARD -->
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <h4 class="mb-3">Volunteer Dashboard</h4>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-success">{{ pending_pickups }}</h2>
+          <p class="text-muted mb-0">Available Pickups</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-warning">{{ my_in_progress }}</h2>
+          <p class="text-muted mb-0">My Active Tasks</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-center">
+        <div class="card-body">
+          <h2 class="text-info">{{ my_completed }}</h2>
+          <p class="text-muted mb-0">Completed</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">🚚</div>
+          <h5>Manage Your Pickups</h5>
+          <p class="text-muted">Accept pickup tasks and complete deliveries</p>
+          <a href="/volunteer-pickups" class="btn btn-success">View Pickups</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% elif session.role == 'admin' %}
+  <!-- ADMIN DASHBOARD -->
+  <div class="row g-4 mb-4">
+    <div class="col-12">
+      <h4 class="mb-3">Platform Overview</h4>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center stats-card">
+        <div class="card-body">
+          <h2 class="text-success">{{ total_users }}</h2>
+          <p class="text-muted mb-0">Total Users</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center stats-card">
+        <div class="card-body">
+          <h2 class="text-primary">{{ total_donations }}</h2>
+          <p class="text-muted mb-0">Total Donations</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center stats-card">
+        <div class="card-body">
+          <h2 class="text-warning">{{ total_transactions }}</h2>
+          <p class="text-muted mb-0">Transactions</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center stats-card">
+        <div class="card-body">
+          <h2 class="text-info">{{ completion_rate }}%</h2>
+          <p class="text-muted mb-0">Completion Rate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="row g-4">
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">👥</div>
+          <h5>User Management</h5>
+          <p class="text-muted">View and manage all users</p>
+          <a href="/admin/users" class="btn btn-success">Manage Users</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">📦</div>
+          <h5>All Donations</h5>
+          <p class="text-muted">View all platform donations</p>
+          <a href="/donations" class="btn btn-primary">View Donations</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body text-center">
+          <div class="mb-3" style="font-size: 3rem">📊</div>
+          <h5>Transactions</h5>
+          <p class="text-muted">Monitor all transactions</p>
+          <a href="/admin/transactions" class="btn btn-outline-success"
+            >View Transactions</a
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Profile Card -->
+  <div class="row mt-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">Your Profile</h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <div class="col-md-6">
+              <p><strong>Name:</strong> {{ session.fullname }}</p>
+              <p><strong>Email:</strong> {{ session.email }}</p>
+            </div>
+            <div class="col-md-6">
+              <p><strong>Role:</strong> {{ session.role|capitalize }}</p>
+              <p><strong>User ID:</strong> {{ session.user_id }}</p>
+            </div>
+          </div>
+          <button class="btn btn-outline-primary mt-2" disabled>
+            Edit Profile (Coming Soon)
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

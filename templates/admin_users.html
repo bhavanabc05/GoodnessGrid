@@ -1,0 +1,108 @@
+{% extends "base.html" %} {% block title %}User Management - Admin{% endblock %}
+{% block content %}
+<div class="container my-5">
+  <h1 class="mb-4">👥 User Management</h1>
+
+  <div class="card">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-success">
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Role</th>
+              <th>Verified</th>
+              <th>Joined</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td>{{ user.user_id }}</td>
+              <td>{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.phone }}</td>
+              <td>
+                <span
+                  class="badge {% if user.role == 'admin' %}bg-danger {% elif user.role == 'donor' %}bg-success {% elif user.role == 'receiver' or user.role == 'ngo' %}bg-primary {% elif user.role == 'volunteer' %}bg-warning {% endif %}"
+                >
+                  {{ user.role|upper }}
+                </span>
+              </td>
+              <td>
+                {% if user.verified %}
+                <span class="badge bg-success">✓ Verified</span>
+                {% else %}
+                <span class="badge bg-secondary">Not Verified</span>
+                {% endif %}
+              </td>
+              <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+              <td>
+                {% if (user.role == 'receiver' or user.role == 'ngo') and not
+                user.verified %}
+                <form
+                  action="/admin/verify-ngo/{{ user.user_id }}"
+                  method="POST"
+                  class="d-inline"
+                >
+                  <button type="submit" class="btn btn-sm btn-success">
+                    Verify
+                  </button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3>{{ users|length }}</h3>
+          <p class="text-muted mb-0">Total Users</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3>
+            {{ users|selectattr('role', 'equalto', 'donor')|list|length }}
+          </h3>
+          <p class="text-muted mb-0">Donors</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3>
+            {{ users|selectattr('role', 'in', ['receiver', 'ngo'])|list|length
+            }}
+          </h3>
+          <p class="text-muted mb-0">NGOs</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center">
+        <div class="card-body">
+          <h3>
+            {{ users|selectattr('role', 'equalto', 'volunteer')|list|length }}
+          </h3>
+          <p class="text-muted mb-0">Volunteers</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

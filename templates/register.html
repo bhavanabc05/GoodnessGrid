@@ -1,0 +1,148 @@
+{% extends "base.html" %} {% block title %}Register - Goodness Grid{% endblock
+%} {% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-lg">
+        <div class="card-body p-5">
+          <h2 class="text-center mb-4">Create Account</h2>
+          <p class="text-center text-muted mb-4">
+            Join Goodness Grid and start making a difference!
+          </p>
+
+          <!-- Flash messages will appear here -->
+          {% if error %}
+          <div
+            class="alert alert-danger alert-dismissible fade show"
+            role="alert"
+          >
+            {{ error }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+            ></button>
+          </div>
+          {% endif %} {% if success %}
+          <div
+            class="alert alert-success alert-dismissible fade show"
+            role="alert"
+          >
+            {{ success }}
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+            ></button>
+          </div>
+          {% endif %}
+
+          <!-- Registration Form -->
+          <!-- action="/register" means: send data to /register route -->
+          <!-- method="POST" means: send data securely (not in URL) -->
+          <form action="/register" method="POST">
+            <!-- Full Name Field -->
+            <div class="mb-3">
+              <label for="fullname" class="form-label">Full Name</label>
+              <input
+                type="text"
+                class="form-control"
+                id="fullname"
+                name="fullname"
+                placeholder="Enter your full name"
+                required
+              />
+            </div>
+
+            <!-- Email Field -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email Address</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+                placeholder="your.email@example.com"
+                required
+              />
+            </div>
+
+            <!-- Phone Number Field -->
+            <div class="mb-3">
+              <label for="phone" class="form-label">Phone Number</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="phone"
+                name="phone"
+                placeholder="10-digit mobile number"
+                pattern="[0-9]{10}"
+                required
+              />
+              <small class="text-muted"
+                >Enter 10-digit number without spaces</small
+              >
+            </div>
+
+            <!-- User Role Dropdown -->
+            <div class="mb-3">
+              <label for="role" class="form-label">I am a</label>
+              <select class="form-select" id="role" name="role" required>
+                <option value="">Choose your role...</option>
+                <option value="donor">
+                  Donor (Individual/Restaurant/Company)
+                </option>
+                <option value="receiver">Receiver (NGO/Organization)</option>
+                <option value="volunteer">Volunteer</option>
+              </select>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+              <label for="password" class="form-label">Password</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                placeholder="Create a strong password"
+                minlength="6"
+                required
+              />
+              <small class="text-muted">Minimum 6 characters</small>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="mb-3">
+              <label for="confirm_password" class="form-label"
+                >Confirm Password</label
+              >
+              <input
+                type="password"
+                class="form-control"
+                id="confirm_password"
+                name="confirm_password"
+                placeholder="Re-enter your password"
+                required
+              />
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid">
+              <button type="submit" class="btn btn-success btn-lg">
+                Create Account
+              </button>
+            </div>
+          </form>
+
+          <!-- Link to Login -->
+          <p class="text-center mt-4 mb-0">
+            Already have an account?
+            <a href="/login" class="text-success fw-bold">Login here</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

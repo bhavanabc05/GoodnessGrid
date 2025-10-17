@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block title %}Available Donations - Goodness Grid{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>🎁 Available Donations</h1>
+        <a href="/dashboard" class="btn btn-outline-success">Back to Dashboard</a>
+    </div>
+
+    <!-- SEARCH AND FILTER BAR -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form action="/donations" method="GET" class="row g-3">
+                <!-- Search Box -->
+                <div class="col-md-6">
+                    <label class="form-label">Search Donations</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="search" 
+                           placeholder="Search by description or quantity..."
+                           value="{{ search_query }}">
+                </div>
+                
+                <!-- Type Filter -->
+                <div class="col-md-4">
+                    <label class="form-label">Filter by Type</label>
+                    <select class="form-select" name="type">
+                        <option value="all" {% if selected_type == 'all' %}selected{% endif %}>All Types</option>
+                        <option value="food" {% if selected_type == 'food' %}selected{% endif %}>🍽️ Food</option>
+                        <option value="clothes" {% if selected_type == 'clothes' %}selected{% endif %}>👕 Clothes</option>
+                        <option value="books" {% if selected_type == 'books' %}selected{% endif %}>📚 Books</option>
+                        <option value="medicine" {% if selected_type == 'medicine' %}selected{% endif %}>💊 Medicine</option>
+                        <option value="electronics" {% if selected_type == 'electronics' %}selected{% endif %}>💻 Electronics</option>
+                        <option value="money" {% if selected_type == 'money' %}selected{% endif %}>💰 Money</option>
+                        <option value="others" {% if selected_type == 'others' %}selected{% endif %}>📦 Others</option>
+                    </select>
+                </div>
+                
+                <!-- Buttons -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="d-grid gap-2 w-100">
+                        <button type="submit" class="btn btn-success">Search</button>
+                        <a href="/donations" class="btn btn-outline-secondary">Clear</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if donations %}
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <p class="text-muted mb-0">{{ donations|length }} donation(s) found</p>
+        {% if search_query or selected_type != 'all' %}
+        <span class="badge bg-success">Filtered Results</span>
+        {% endif %}
+    </div>
+
+    <div class="row g-4">
+        {% for donation in donations %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 shadow-sm donation-card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        {% if donation.type == 'food' %}🍽️
+                        {% elif donation.type == 'clothes' %}👕
+                        {% elif donation.type == 'books' %}📚
+                        {% elif donation.type == 'medicine' %}💊
+                        {% elif donation.type == 'electronics' %}💻
+                        {% elif donation.type == 'money' %}💰
+                        {% else %}📦
+                        {% endif %}
+                        {{ donation.type|capitalize }}
+                    </h5>
+                </div>
+
+                <div class="card-body">
+                    <p class="card-text"><strong>{{ donation.description }}</strong></p>
+                    
+                    <p class="text-muted mb-2">
+                        <small><strong>Quantity:</strong> {{ donation.quantity }}</small>
+                    </p>
+
+                    {% if donation.pickup_address %}
+                    <p class="text-muted mb-2">
+                        <small><strong>📍 Pickup:</strong> {{ donation.pickup_address[:50] }}{% if donation.pickup_address|length > 50 %}...{% endif %}</small>
+                    </p>
+                    {% endif %}
+
+                    <p class="text-muted mb-2">
+                        <small><strong>Donor:</strong> {{ donation.donor_name }}</small>
+                    </p>
+
+                    {% if donation.expiry_date %}
+                    <p class="text-danger mb-2">
+                        <small><strong>⏰ Expires:</strong> {{ donation.expiry_date }}</small>
+                    </p>
+                    {% endif %}
+
+                    <p class="text-muted mb-3">
+                        <small><strong>Posted:</strong> {{ donation.created_at.strftime('%b %d, %Y at %I:%M %p') }}</small>
+                    </p>
+
+                    <div class="d-grid gap-2">
+    {% if session.role == 'receiver' or session.role == 'ngo' %}
+    <form action="/claim-donation/{{ donation.donation_id }}" method="POST">
+        <button type="submit" class="btn btn-success w-100">
+            Claim This Donation
+        </button>
+    </form>
+    {% else %}
+    <button class="btn btn-outline-success" disabled>
+        Only NGOs can claim
+    </button>
+    {% endif %}
+</div>
+                </div>
+
+                <div class="card-footer text-center">
+                    <span class="badge bg-success">Available</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="alert alert-info text-center">
+        <h4>No donations available right now</h4>
+        <p>Check back later for new donations!</p>
+        {% if session.role == 'donor' %}
+        <a href="/post-donation" class="btn btn-success mt-2">Post Your First Donation</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Find all the buttons that have our new 'claim-btn' class
+const claimButtons = document.querySelectorAll('.claim-btn');
+
+// Loop through each button and add an event listener
+claimButtons.forEach(button => {
+    button.addEventListener('click', function() {
+        // Get the donation ID from the button's 'data-donation-id' attribute
+        const donationId = this.dataset.donationId;
+        // Call the claimDonation function with the ID
+        claimDonation(donationId);
+    });
+});
+
+// This is your original function, it stays the same
+function claimDonation(donationId) {
+    alert('Claim feature coming soon! Donation ID: ' + donationId);
+}
+</script>
+
+<style>
+.donation-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.donation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+</style>
+{% endblock %}
