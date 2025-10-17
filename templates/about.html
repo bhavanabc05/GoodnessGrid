@@ -1,7 +1,143 @@
 {% extends "base.html" %} {% block title %}About - Goodness Grid{% endblock %}
 {% block content %}
 <div class="container my-5">
-  <h1>About Goodness Grid</h1>
-  <p>We connect donors with those in need...</p>
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="text-center mb-5">
+        <h1 class="display-4 mb-3">About Goodness Grid</h1>
+        <p class="lead">A Network of Good Deeds Connecting Communities</p>
+      </div>
+
+      <!-- Problem Statement -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="text-success mb-3">🎯 The Problem</h3>
+          <p>
+            Every day, tons of food, clothes, medicines, and essential items are
+            discarded while many underprivileged communities continue to suffer
+            from shortages. NGOs, orphanages, old-age homes, and many others
+            often rely on local contacts or manual donations, which are not
+            systematic or sustainable.
+          </p>
+        </div>
+      </div>
+
+      <!-- Our Solution -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="text-success mb-3">💡 Our Solution</h3>
+          <p>
+            Goodness Grid is a centralized online platform that connects donors
+            and receivers efficiently. We bridge the gap between surplus and
+            need through technology.
+          </p>
+
+          <div class="row mt-4">
+            <div class="col-md-4 text-center mb-3">
+              <div class="feature-icon">🎁</div>
+              <h5>For Donors</h5>
+              <p>
+                Individuals, restaurants, companies, and pharmacies can easily
+                donate surplus items
+              </p>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+              <div class="feature-icon">🏥</div>
+              <h5>For Receivers</h5>
+              <p>
+                NGOs, orphanages, schools, hospitals can browse and claim needed
+                items
+              </p>
+            </div>
+            <div class="col-md-4 text-center mb-3">
+              <div class="feature-icon">🚚</div>
+              <h5>For Volunteers</h5>
+              <p>Community members help with pickup and delivery logistics</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Features -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="text-success mb-3">✨ Key Features</h3>
+          <ul class="list-unstyled">
+            <li class="mb-2">
+              ✅ Multi-category donations (food, clothes, books, medicine,
+              electronics)
+            </li>
+            <li class="mb-2">✅ Real-time posting and claiming system</li>
+            <li class="mb-2">✅ Search and filter functionality</li>
+            <li class="mb-2">✅ Role-based dashboards</li>
+            <li class="mb-2">✅ Volunteer assignment and tracking</li>
+            <li class="mb-2">✅ Admin monitoring and user verification</li>
+            <li class="mb-2">✅ Complete transaction lifecycle management</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Technology Stack -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="text-success mb-3">🛠️ Technology Stack</h3>
+          <div class="row">
+            <div class="col-md-6">
+              <h5>Frontend</h5>
+              <ul>
+                <li>HTML5, CSS3</li>
+                <li>Bootstrap 5</li>
+                <li>Jinja2 Templates</li>
+              </ul>
+            </div>
+            <div class="col-md-6">
+              <h5>Backend</h5>
+              <ul>
+                <li>Python 3</li>
+                <li>Flask Framework</li>
+                <li>MySQL Database</li>
+                <li>Werkzeug Security</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Team -->
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="text-success mb-3">👥 Our Team</h3>
+          <p>
+            <strong>Project Guide:</strong> Sumana K M (Assistant Professor)
+          </p>
+          <p><strong>Team Members:</strong></p>
+          <ul>
+            <li>Ahlam Javeria (4NI23CS012)</li>
+            <li>Bhavana B C (4NI23CS037)</li>
+            <li>Deeksha Priya C A (4NI23CS046)</li>
+            <li>Fathima Hiba KK (4NI23CS058)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Impact -->
+      <div class="card mb-4 shadow-sm bg-success text-white">
+        <div class="card-body p-4 text-center">
+          <h3 class="mb-3">🌟 Making a Difference</h3>
+          <p class="mb-0">
+            Together, we can reduce waste, help those in need, and build a more
+            connected, compassionate community.
+          </p>
+        </div>
+      </div>
+
+      <div class="text-center mt-4">
+        <a href="/register" class="btn btn-success btn-lg me-3"
+          >Join Us Today</a
+        >
+        <a href="/" class="btn btn-outline-success btn-lg">Back to Home</a>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
