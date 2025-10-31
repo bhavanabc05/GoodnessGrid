@@ -145,4 +145,55 @@
     </div>
   </div>
 </div>
+<script>
+  // Client-side validation
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.querySelector("form");
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirm_password");
+    const phone = document.getElementById("phone");
+
+    form.addEventListener("submit", function (e) {
+      let isValid = true;
+      let errors = [];
+
+      // Password validation
+      if (password.value.length < 6) {
+        errors.push("Password must be at least 6 characters!");
+        isValid = false;
+      }
+
+      if (!/\d/.test(password.value)) {
+        errors.push("Password must contain at least one number!");
+        isValid = false;
+      }
+
+      // Password match
+      if (password.value !== confirmPassword.value) {
+        errors.push("Passwords do not match!");
+        isValid = false;
+      }
+
+      // Phone validation
+      if (phone.value.length !== 10 || !/^\d+$/.test(phone.value)) {
+        errors.push("Phone number must be exactly 10 digits!");
+        isValid = false;
+      }
+
+      if (!isValid) {
+        e.preventDefault();
+        alert(errors.join("\n"));
+      }
+    });
+
+    // Real-time password match indicator
+    confirmPassword.addEventListener("input", function () {
+      if (this.value === password.value && this.value !== "") {
+        this.style.borderColor = "green";
+      } else if (this.value !== "") {
+        this.style.borderColor = "red";
+      }
+    });
+  });
+</script>
 {% endblock %}

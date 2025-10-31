@@ -1,0 +1,64 @@
+{% extends "base.html" %} {% block title %}Page Not Found - Goodness Grid{%
+endblock %} {% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <div class="error-page">
+        <h1 class="display-1 text-success">404</h1>
+        <h2 class="mb-4">Page Not Found</h2>
+        <p class="lead mb-4">
+          Sorry, the page you're looking for doesn't exist or has been moved.
+        </p>
+        <div class="mb-4">
+          <svg width="200" height="200" viewBox="0 0 200 200">
+            <circle
+              cx="100"
+              cy="100"
+              r="80"
+              fill="#e8f5e9"
+              stroke="#4caf50"
+              stroke-width="3"
+            />
+            <text
+              x="100"
+              y="120"
+              font-size="80"
+              text-anchor="middle"
+              fill="#4caf50"
+            >
+              ?
+            </text>
+          </svg>
+        </div>
+        <div class="d-grid gap-2 d-md-block">
+          <a href="/" class="btn btn-success btn-lg me-2">Go to Homepage</a>
+          {% if session.email %}
+          <a href="/dashboard" class="btn btn-outline-success btn-lg"
+            >Go to Dashboard</a
+          >
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .error-page {
+    padding: 3rem 0;
+  }
+  .error-page h1 {
+    font-weight: 900;
+    animation: bounce 1s infinite;
+  }
+  @keyframes bounce {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+</style>
+{% endblock %}

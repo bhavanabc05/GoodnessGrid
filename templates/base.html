@@ -48,6 +48,9 @@
               <a class="nav-link" href="/dashboard">Dashboard</a>
             </li>
             <li class="nav-item">
+              <a class="nav-link" href="/profile">Profile</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" href="/logout">Logout</a>
             </li>
             <li class="nav-item">
@@ -69,7 +72,27 @@
       </div>
     </nav>
 
-    <main>{% block content %} {% endblock %}</main>
+    <main>
+      <!-- Flash Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="container mt-3">
+        {% for category, message in messages %}
+        <div
+          class="alert alert-{{ category }} alert-dismissible fade show"
+          role="alert"
+        >
+          {{ message }}
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+          ></button>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %} {% block content %} {% endblock %}
+    </main>
 
     <footer class="bg-dark text-white text-center py-4 mt-5">
       <div class="container">

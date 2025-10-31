@@ -1,140 +1,114 @@
-{% extends "base.html" %} {% block title %}About - Goodness Grid{% endblock %}
-{% block content %}
+{% extends "base.html" %} {% block title %}About Us - Goodness Grid{% endblock
+%} {% block content %}
 <div class="container my-5">
   <div class="row justify-content-center">
     <div class="col-lg-10">
       <div class="text-center mb-5">
         <h1 class="display-4 mb-3">About Goodness Grid</h1>
-        <p class="lead">A Network of Good Deeds Connecting Communities</p>
+        <p class="lead">Connecting Communities, Sharing Goodness</p>
       </div>
 
-      <!-- Problem Statement -->
       <div class="card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <h3 class="text-success mb-3">🎯 The Problem</h3>
+          <h3 class="text-success mb-3">Our Mission</h3>
           <p>
-            Every day, tons of food, clothes, medicines, and essential items are
-            discarded while many underprivileged communities continue to suffer
-            from shortages. NGOs, orphanages, old-age homes, and many others
-            often rely on local contacts or manual donations, which are not
-            systematic or sustainable.
+            Our mission is to create a seamless and efficient network that
+            bridges the gap between surplus and need. We are dedicated to
+            empowering communities by providing a centralized platform where
+            generosity finds its purpose, ensuring that resources like food,
+            clothing, and essential items reach those who need them most.
           </p>
         </div>
       </div>
 
-      <!-- Our Solution -->
       <div class="card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <h3 class="text-success mb-3">💡 Our Solution</h3>
+          <h3 class="text-success mb-3">Our Vision</h3>
           <p>
-            Goodness Grid is a centralized online platform that connects donors
-            and receivers efficiently. We bridge the gap between surplus and
-            need through technology.
+            We envision a world where waste is minimized, and every individual
+            has access to the basic necessities for a dignified life. Goodness
+            Grid aspires to be a leading force in fostering a culture of giving,
+            creating a sustainable and compassionate future for all.
           </p>
+        </div>
+      </div>
 
+      <div class="card mb-4 shadow-sm">
+        <div class="card-body p-4">
+          <h3 class="text-success mb-3">What We Do</h3>
+          <p>
+            Goodness Grid is an online platform that connects donors with
+            non-profit organizations and volunteers. We make it easy for
+            individuals and businesses to donate surplus items, for NGOs to find
+            and claim the resources they need, and for volunteers to contribute
+            their time and skills to make a tangible impact.
+          </p>
           <div class="row mt-4">
             <div class="col-md-4 text-center mb-3">
               <div class="feature-icon">🎁</div>
-              <h5>For Donors</h5>
+              <h5>Empowering Donors</h5>
               <p>
-                Individuals, restaurants, companies, and pharmacies can easily
-                donate surplus items
+                We provide a simple and reliable way for you to give back to
+                your community.
               </p>
             </div>
             <div class="col-md-4 text-center mb-3">
               <div class="feature-icon">🏥</div>
-              <h5>For Receivers</h5>
+              <h5>Supporting NGOs</h5>
               <p>
-                NGOs, orphanages, schools, hospitals can browse and claim needed
-                items
+                We help organizations access a steady stream of donations to
+                support their vital work.
               </p>
             </div>
             <div class="col-md-4 text-center mb-3">
-              <div class="feature-icon">🚚</div>
-              <h5>For Volunteers</h5>
-              <p>Community members help with pickup and delivery logistics</p>
+              <div class="feature-icon">🤝</div>
+              <h5>Engaging Volunteers</h5>
+              <p>
+                We offer opportunities for community members to get involved and
+                make a difference.
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Key Features -->
       <div class="card mb-4 shadow-sm">
         <div class="card-body p-4">
-          <h3 class="text-success mb-3">✨ Key Features</h3>
+          <h3 class="text-success mb-3">Our Values</h3>
           <ul class="list-unstyled">
             <li class="mb-2">
-              ✅ Multi-category donations (food, clothes, books, medicine,
-              electronics)
+              <strong>Compassion:</strong> We are driven by a deep sense of
+              empathy and a desire to help others.
             </li>
-            <li class="mb-2">✅ Real-time posting and claiming system</li>
-            <li class="mb-2">✅ Search and filter functionality</li>
-            <li class="mb-2">✅ Role-based dashboards</li>
-            <li class="mb-2">✅ Volunteer assignment and tracking</li>
-            <li class="mb-2">✅ Admin monitoring and user verification</li>
-            <li class="mb-2">✅ Complete transaction lifecycle management</li>
+            <li class="mb-2">
+              <strong>Integrity:</strong> We operate with transparency and
+              accountability in all our interactions.
+            </li>
+            <li class="mb-2">
+              <strong>Community:</strong> We believe in the power of collective
+              action to create positive change.
+            </li>
+            <li class="mb-2">
+              <strong>Innovation:</strong> We leverage technology to create
+              effective and scalable solutions.
+            </li>
           </ul>
         </div>
       </div>
 
-      <!-- Technology Stack -->
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body p-4">
-          <h3 class="text-success mb-3">🛠️ Technology Stack</h3>
-          <div class="row">
-            <div class="col-md-6">
-              <h5>Frontend</h5>
-              <ul>
-                <li>HTML5, CSS3</li>
-                <li>Bootstrap 5</li>
-                <li>Jinja2 Templates</li>
-              </ul>
-            </div>
-            <div class="col-md-6">
-              <h5>Backend</h5>
-              <ul>
-                <li>Python 3</li>
-                <li>Flask Framework</li>
-                <li>MySQL Database</li>
-                <li>Werkzeug Security</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Team -->
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body p-4">
-          <h3 class="text-success mb-3">👥 Our Team</h3>
-          <p>
-            <strong>Project Guide:</strong> Sumana K M (Assistant Professor)
-          </p>
-          <p><strong>Team Members:</strong></p>
-          <ul>
-            <li>Ahlam Javeria (4NI23CS012)</li>
-            <li>Bhavana B C (4NI23CS037)</li>
-            <li>Deeksha Priya C A (4NI23CS046)</li>
-            <li>Fathima Hiba KK (4NI23CS058)</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Impact -->
       <div class="card mb-4 shadow-sm bg-success text-white">
         <div class="card-body p-4 text-center">
-          <h3 class="mb-3">🌟 Making a Difference</h3>
+          <h3 class="mb-3">Join Our Community</h3>
           <p class="mb-0">
-            Together, we can reduce waste, help those in need, and build a more
-            connected, compassionate community.
+            Be a part of the Goodness Grid network. Whether you are a donor, an
+            organization, or a volunteer, your contribution can help build a
+            better, more compassionate world.
           </p>
         </div>
       </div>
 
       <div class="text-center mt-4">
-        <a href="/register" class="btn btn-success btn-lg me-3"
-          >Join Us Today</a
-        >
+        <a href="/register" class="btn btn-success btn-lg me-3">Get Involved</a>
         <a href="/" class="btn btn-outline-success btn-lg">Back to Home</a>
       </div>
     </div>

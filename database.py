@@ -769,6 +769,446 @@ def get_all_transactions_admin():
             connection.close()
         return []
     
+def update_user_profile(user_id, name, phone, address):
+    """
+    Update user profile information
+    """
+    connection = get_db_connection()
+    if not connection:
+        return False
+    
+    try:
+        cursor = connection.cursor()
+        
+        query = """
+        UPDATE Users 
+        SET name = %s, phone = %s, address = %s
+        WHERE user_id = %s
+        """
+        
+        cursor.execute(query, (name, phone, address, user_id))
+        connection.commit()
+        
+        cursor.close()
+        connection.close()
+        
+        print(f"✅ Profile updated for user {user_id}")
+        return True
+        
+    except Error as e:
+        print(f"Error updating profile: {e}")
+        if connection:
+            connection.close()
+        return False
+
+
+def change_user_password(user_id, new_password):
+    """
+    Change user password
+    """
+    connection = get_db_connection()
+    if not connection:
+        return False
+    
+    try:
+        cursor = connection.cursor()
+        
+        # Hash the new password
+        from werkzeug.security import generate_password_hash
+        hashed_password = generate_password_hash(new_password)
+        
+        query = "UPDATE Users SET password = %s WHERE user_id = %s"
+        cursor.execute(query, (hashed_password, user_id))
+        connection.commit()
+        
+        cursor.close()
+        connection.close()
+        
+        print(f"✅ Password changed for user {user_id}")
+        return True
+        
+    except Error as e:
+        print(f"Error changing password: {e}")
+        if connection:
+            connection.close()
+        return False
+
+
+def get_user_activity_stats(user_id, role):
+    """
+    Get activity statistics for a user based on their role
+    """
+    connection = get_db_connection()
+    if not connection:
+        return {}
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        stats = {}
+        
+        if role == 'donor':
+            # Get donation stats
+            cursor.execute("""
+                SELECT 
+                    COUNT(*) as total,
+                    SUM(CASE WHEN status = 'available' THEN 1 ELSE 0 END) as available,
+                    SUM(CASE WHEN status = 'claimed' THEN 1 ELSE 0 END) as claimed,
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+                FROM Donations 
+                WHERE donor_id = %s
+            """, (user_id,))
+            stats = cursor.fetchone()
+            
+        elif role in ['receiver', 'ngo']:
+            # Get claiming stats
+            cursor.execute("""
+                SELECT 
+                    COUNT(*) as total_claimed,
+                    SUM(CASE WHEN t.status = 'pending' THEN 1 ELSE 0 END) as pending,
+                    SUM(CASE WHEN t.status = 'in_progress' THEN 1 ELSE 0 END) as in_progress,
+                    SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed
+                FROM Transactions t
+                WHERE t.ngo_id = %s
+            """, (user_id,))
+            stats = cursor.fetchone()
+            
+        elif role == 'volunteer':
+            # Get volunteer stats
+            cursor.execute("""
+                SELECT 
+                    COUNT(*) as total_tasks,
+                    SUM(CASE WHEN status = 'in_progress' THEN 1 ELSE 0 END) as active,
+                    SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
+                FROM Transactions 
+                WHERE volunteer_id = %s
+            """, (user_id,))
+            stats = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        
+        return stats if stats else {}
+        
+    except Error as e:
+        print(f"Error fetching activity stats: {e}")
+        if connection:
+            connection.close()
+        return {}
+    
+def get_donation_trends():
+    """
+    Get donation statistics over the last 30 days
+    Returns data for trend charts
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+        SELECT 
+            DATE(created_at) as date,
+            COUNT(*) as count
+        FROM Donations
+        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY DATE(created_at)
+        ORDER BY date
+        """
+        
+        cursor.execute(query)
+        trends = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return trends
+        
+    except Error as e:
+        print(f"Error fetching donation trends: {e}")
+        if connection:
+            connection.close()
+        return []
+
+
+def get_donation_type_distribution():
+    """
+    Get count of donations by type
+    For pie chart
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+        SELECT 
+            type,
+            COUNT(*) as count
+        FROM Donations
+        GROUP BY type
+        ORDER BY count DESC
+        """
+        
+        cursor.execute(query)
+        distribution = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return distribution
+        
+    except Error as e:
+        print(f"Error fetching type distribution: {e}")
+        if connection:
+            connection.close()
+        return []
+
+
+def get_completion_rate_trend():
+    """
+    Get completion rate over last 30 days
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+        SELECT 
+            DATE(t.created_at) as date,
+            COUNT(*) as total,
+            SUM(CASE WHEN t.status = 'completed' THEN 1 ELSE 0 END) as completed
+        FROM Transactions t
+        WHERE t.created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY DATE(t.created_at)
+        ORDER BY date
+        """
+        
+        cursor.execute(query)
+        trends = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return trends
+        
+    except Error as e:
+        print(f"Error fetching completion trends: {e}")
+        if connection:
+            connection.close()
+        return []
+
+
+def get_user_growth_data():
+    """
+    Get user registration trends
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+        SELECT 
+            DATE(created_at) as date,
+            role,
+            COUNT(*) as count
+        FROM Users
+        WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+        GROUP BY DATE(created_at), role
+        ORDER BY date
+        """
+        
+        cursor.execute(query)
+        growth = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return growth
+        
+    except Error as e:
+        print(f"Error fetching user growth: {e}")
+        if connection:
+            connection.close()
+        return []
+
+
+def get_top_donors(limit=5):
+    """
+    Get top donors by number of donations
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+        SELECT 
+            u.name,
+            u.email,
+            COUNT(d.donation_id) as total_donations,
+            SUM(CASE WHEN d.status = 'completed' THEN 1 ELSE 0 END) as completed_donations
+        FROM Users u
+        JOIN Donations d ON u.user_id = d.donor_id
+        WHERE u.role = 'donor'
+        GROUP BY u.user_id, u.name, u.email
+        ORDER BY total_donations DESC
+        LIMIT %s
+        """
+        
+        cursor.execute(query, (limit,))
+        donors = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return donors
+        
+    except Error as e:
+        print(f"Error fetching top donors: {e}")
+        if connection:
+            connection.close()
+        return []
+    
+def get_all_donations_for_export():
+    """
+    Get all donations with full details for export
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+        SELECT 
+            d.donation_id,
+            d.type,
+            d.description,
+            d.quantity,
+            d.pickup_address,
+            d.status,
+            d.created_at,
+            u.name as donor_name,
+            u.email as donor_email,
+            u.phone as donor_phone
+        FROM Donations d
+        JOIN Users u ON d.donor_id = u.user_id
+        ORDER BY d.created_at DESC
+        """
+        
+        cursor.execute(query)
+        donations = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return donations
+        
+    except Error as e:
+        print(f"Error fetching donations for export: {e}")
+        if connection:
+            connection.close()
+        return []
+
+
+def get_all_users_for_export():
+    """
+    Get all users with full details for export
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+        SELECT 
+            user_id,
+            name,
+            email,
+            phone,
+            address,
+            role,
+            verified,
+            created_at
+        FROM Users
+        ORDER BY created_at DESC
+        """
+        
+        cursor.execute(query)
+        users = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return users
+        
+    except Error as e:
+        print(f"Error fetching users for export: {e}")
+        if connection:
+            connection.close()
+        return []
+
+
+def get_all_transactions_for_export():
+    """
+    Get all transactions with full details for export
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = """
+        SELECT 
+            t.transaction_id,
+            d.type as donation_type,
+            d.description,
+            d.quantity,
+            donor.name as donor_name,
+            ngo.name as ngo_name,
+            vol.name as volunteer_name,
+            t.status,
+            t.created_at,
+            t.completed_at
+        FROM Transactions t
+        JOIN Donations d ON t.donation_id = d.donation_id
+        JOIN Users donor ON d.donor_id = donor.user_id
+        JOIN Users ngo ON t.ngo_id = ngo.user_id
+        LEFT JOIN Users vol ON t.volunteer_id = vol.user_id
+        ORDER BY t.created_at DESC
+        """
+        
+        cursor.execute(query)
+        transactions = cursor.fetchall()
+        
+        cursor.close()
+        connection.close()
+        
+        return transactions
+        
+    except Error as e:
+        print(f"Error fetching transactions for export: {e}")
+        if connection:
+            connection.close()
+        return []
+    
 # Test the connection when this file is run directly
 if __name__ == "__main__":
     print("Testing database connection...")

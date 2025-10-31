@@ -1,297 +1,265 @@
 {% extends "base.html" %} {% block title %}Dashboard - Goodness Grid{% endblock
 %} {% block content %}
-<div class="container my-5">
-  <!-- Welcome Section -->
+
+<div class="container py-5">
+  <!-- ===== Welcome Section ===== -->
   <div class="row mb-4">
     <div class="col-12">
-      <div class="alert alert-success">
-        <h3 class="mb-0">👋 Welcome back, {{ session.fullname }}!</h3>
+      <div class="alert alert-success shadow-sm rounded-3">
+        <h3 class="fw-bold mb-1">👋 Welcome back, {{ session.fullname }}!</h3>
         <p class="mb-0">
-          You are logged in as a <strong>{{ session.role|upper }}</strong>
+          You are logged in as <strong>{{ session.role|upper }}</strong>.
         </p>
       </div>
     </div>
   </div>
 
-  <!-- Role-Specific Dashboard Content -->
+  <!-- ===== Role-Specific Dashboards ===== -->
 
   {% if session.role == 'donor' %}
-  <!-- DONOR DASHBOARD -->
-  <div class="row g-4 mb-4">
-    <!-- Quick Stats -->
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-success">{{ my_donations_count }}</h2>
-          <p class="text-muted mb-0">Total Donations</p>
+  <!-- === DONOR DASHBOARD === -->
+  <section class="mb-5">
+    <h4 class="mb-3 fw-semibold text-success">Your Donation Overview</h4>
+    <div class="row g-4">
+      {% set stats = [ ('Total Donations', my_donations_count, 'success'),
+      ('Available', available_count, 'warning'), ('Claimed', claimed_count,
+      'info'), ('Completed', completed_count, 'primary') ] %} {% for label,
+      count, color in stats %}
+      <div class="col-md-3 col-sm-6">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body">
+            <h2 class="text-{{ color }} fw-bold">{{ count }}</h2>
+            <p class="text-muted mb-0">{{ label }}</p>
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-warning">{{ available_count }}</h2>
-          <p class="text-muted mb-0">Available</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-info">{{ claimed_count }}</h2>
-          <p class="text-muted mb-0">Claimed</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-primary">{{ completed_count }}</h2>
-          <p class="text-muted mb-0">Completed</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <!-- Quick Actions -->
-  <div class="row g-4">
-    <div class="col-12">
-      <h4 class="mb-3">Quick Actions</h4>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">📦</div>
-          <h5>Post New Donation</h5>
-          <p class="text-muted">Share your surplus items with those in need</p>
-          <a href="/post-donation" class="btn btn-success">Post Donation</a>
+  <section>
+    <h4 class="mb-3 fw-semibold text-secondary">Quick Actions</h4>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div
+          class="card h-100 shadow-sm border-0 hover-shadow rounded-4 text-center"
+        >
+          <div class="card-body">
+            <div class="display-3 mb-3">📦</div>
+            <h5 class="fw-semibold">Post New Donation</h5>
+            <p class="text-muted small">
+              Share your surplus items with those in need.
+            </p>
+            <a href="/post-donation" class="btn btn-success">Post Donation</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 rounded-4 text-center">
+          <div class="card-body">
+            <div class="display-3 mb-3">📋</div>
+            <h5 class="fw-semibold">My Donations</h5>
+            <p class="text-muted small">
+              View and manage your posted donations.
+            </p>
+            <a href="/my-donations" class="btn btn-primary">View Donations</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 rounded-4 text-center">
+          <div class="card-body">
+            <div class="display-3 mb-3">🔍</div>
+            <h5 class="fw-semibold">Browse All</h5>
+            <p class="text-muted small">See what others are donating.</p>
+            <a href="/donations" class="btn btn-danger">Browse</a>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">📋</div>
-          <h5>My Donations</h5>
-          <p class="text-muted">View and manage your posted donations</p>
-          <a href="/my-donations" class="btn btn-primary">View Donations</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">🔍</div>
-          <h5>Browse All</h5>
-          <p class="text-muted">See what others are donating</p>
-          <a href="/donations" class="btn btn-danger">Browse</a>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
-  {% elif session.role == 'receiver' or session.role == 'ngo' %}
-  <!-- NGO/RECEIVER DASHBOARD -->
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <h4 class="mb-3">Available Donations</h4>
-    </div>
-    <div class="col-md-4">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-success">{{ total_donations }}</h2>
-          <p class="text-muted mb-0">Total Available</p>
+  {% elif session.role in ['receiver', 'ngo'] %}
+  <!-- === RECEIVER / NGO DASHBOARD === -->
+  <section class="mb-5">
+    <h4 class="mb-3 fw-semibold text-success">Available Donations Overview</h4>
+    <div class="row g-4">
+      {% set stats = [ ('Total Available', total_donations, 'success'),
+      ('Claimed by You', claimed_count, 'warning'), ('Completed',
+      completed_count, 'info') ] %} {% for label, count, color in stats %}
+      <div class="col-md-4 col-sm-6">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body">
+            <h2 class="text-{{ color }} fw-bold">{{ count }}</h2>
+            <p class="text-muted mb-0">{{ label }}</p>
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    <div class="col-md-4">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-warning">{{ claimed_count }}</h2>
-          <p class="text-muted mb-0">Claimed by You</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-info">{{ completed_count }}</h2>
-          <p class="text-muted mb-0">Completed</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <!-- Quick Actions -->
-  <div class="row g-4">
-    <div class="col-md-6">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">🎁</div>
-          <h5>Browse Donations</h5>
-          <p class="text-muted">Find donations that match your needs</p>
-          <a href="/donations" class="btn btn-success">Browse Now</a>
+  <section>
+    <h4 class="mb-3 fw-semibold text-secondary">Quick Actions</h4>
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0 text-center rounded-4">
+          <div class="card-body">
+            <div class="display-3 mb-3">🎁</div>
+            <h5 class="fw-semibold">Browse Donations</h5>
+            <p class="text-muted small">
+              Find donations that match your needs.
+            </p>
+            <a href="/donations" class="btn btn-success">Browse Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0 text-center rounded-4">
+          <div class="card-body">
+            <div class="display-3 mb-3">📊</div>
+            <h5 class="fw-semibold">My Claims</h5>
+            <p class="text-muted small">View donations you’ve claimed.</p>
+            <a href="/my-claims" class="btn btn-success">View My Claims</a>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-6">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">📊</div>
-          <h5>My Claims</h5>
-          <p class="text-muted">View donations you've claimed</p>
-          <a href="/my-claims" class="btn btn-success">View My Claims</a>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
   {% elif session.role == 'volunteer' %}
-  <!-- VOLUNTEER DASHBOARD -->
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <h4 class="mb-3">Volunteer Dashboard</h4>
-    </div>
-    <div class="col-md-4">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-success">{{ pending_pickups }}</h2>
-          <p class="text-muted mb-0">Available Pickups</p>
+  <!-- === VOLUNTEER DASHBOARD === -->
+  <section class="mb-5">
+    <h4 class="mb-3 fw-semibold text-success">Volunteer Overview</h4>
+    <div class="row g-4">
+      {% set stats = [ ('Available Pickups', pending_pickups, 'success'), ('My
+      Active Tasks', my_in_progress, 'warning'), ('Completed', my_completed,
+      'info') ] %} {% for label, count, color in stats %}
+      <div class="col-md-4 col-sm-6">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body">
+            <h2 class="text-{{ color }} fw-bold">{{ count }}</h2>
+            <p class="text-muted mb-0">{{ label }}</p>
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    <div class="col-md-4">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-warning">{{ my_in_progress }}</h2>
-          <p class="text-muted mb-0">My Active Tasks</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card text-center">
-        <div class="card-body">
-          <h2 class="text-info">{{ my_completed }}</h2>
-          <p class="text-muted mb-0">Completed</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
-  <div class="row g-4">
-    <div class="col-md-12">
-      <div class="card shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">🚚</div>
-          <h5>Manage Your Pickups</h5>
-          <p class="text-muted">Accept pickup tasks and complete deliveries</p>
-          <a href="/volunteer-pickups" class="btn btn-success">View Pickups</a>
-        </div>
+  <section>
+    <div class="card shadow-sm border-0 text-center rounded-4">
+      <div class="card-body">
+        <div class="display-3 mb-3">🚚</div>
+        <h5 class="fw-semibold">Manage Your Pickups</h5>
+        <p class="text-muted small">
+          Accept pickup tasks and complete deliveries.
+        </p>
+        <a href="/volunteer-pickups" class="btn btn-success">View Pickups</a>
       </div>
     </div>
-  </div>
+  </section>
 
   {% elif session.role == 'admin' %}
-  <!-- ADMIN DASHBOARD -->
-  <div class="row g-4 mb-4">
-    <div class="col-12">
-      <h4 class="mb-3">Platform Overview</h4>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center stats-card">
-        <div class="card-body">
-          <h2 class="text-success">{{ total_users }}</h2>
-          <p class="text-muted mb-0">Total Users</p>
+  <!-- === ADMIN DASHBOARD === -->
+  <section class="mb-5">
+    <h4 class="mb-3 fw-semibold text-success">Platform Overview</h4>
+    <div class="row g-4">
+      {% set stats = [ ('Total Users', total_users, 'success'), ('Total
+      Donations', total_donations, 'primary'), ('Transactions',
+      total_transactions, 'warning'), ('Completion Rate', completion_rate|string
+      + '%', 'info') ] %} {% for label, count, color in stats %}
+      <div class="col-md-3 col-sm-6">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body">
+            <h2 class="text-{{ color }} fw-bold">{{ count }}</h2>
+            <p class="text-muted mb-0">{{ label }}</p>
+          </div>
         </div>
       </div>
+      {% endfor %}
     </div>
-    <div class="col-md-3">
-      <div class="card text-center stats-card">
-        <div class="card-body">
-          <h2 class="text-primary">{{ total_donations }}</h2>
-          <p class="text-muted mb-0">Total Donations</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center stats-card">
-        <div class="card-body">
-          <h2 class="text-warning">{{ total_transactions }}</h2>
-          <p class="text-muted mb-0">Transactions</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center stats-card">
-        <div class="card-body">
-          <h2 class="text-info">{{ completion_rate }}%</h2>
-          <p class="text-muted mb-0">Completion Rate</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
 
   <!-- Quick Actions -->
-  <div class="row g-4">
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">👥</div>
-          <h5>User Management</h5>
-          <p class="text-muted">View and manage all users</p>
-          <a href="/admin/users" class="btn btn-success">Manage Users</a>
+  <section>
+    <h4 class="mb-3 fw-semibold text-secondary">Admin Controls</h4>
+    <div class="row g-4">
+      {% set actions = [ ('👥', 'User Management', 'View and manage all users',
+      '/admin/users', 'success'), ('📦', 'All Donations', 'View all platform
+      donations', '/donations', 'primary'), ('📊', 'Transactions', 'Monitor all
+      transactions', '/admin/transactions', 'outline-success'), ('📈',
+      'Analytics', 'View detailed charts and trends', '/admin/analytics',
+      'success') ] %} {% for icon, title, desc, link, btn in actions %}
+      <div class="col-md-3 col-sm-6">
+        <div class="card h-100 text-center border-0 shadow-sm rounded-4">
+          <div class="card-body">
+            <div class="display-3 mb-3">{{ icon }}</div>
+            <h5 class="fw-semibold">{{ title }}</h5>
+            <p class="text-muted small">{{ desc }}</p>
+            <a href="{{ link }}" class="btn btn-{{ btn }}">{{ title }}</a>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Reports -->
+  <section class="mt-5">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-header bg-warning text-dark">
+        <h5 class="mb-0 fw-semibold">📄 Export Reports</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">
+          Download platform data in CSV format for analysis and record-keeping.
+        </p>
+        <div class="row g-3">
+          {% set reports = [ ('👥 Export Users', '/admin/export/users',
+          'outline-success'), ('📦 Export Donations', '/admin/export/donations',
+          'outline-primary'), ('📊 Export Transactions',
+          '/admin/export/transactions', 'outline-info'), ('📋 Summary Report',
+          '/admin/export/summary', 'outline-warning') ] %} {% for label, link,
+          btn in reports %}
+          <div class="col-md-3 col-sm-6">
+            <a href="{{ link }}" class="btn btn-{{ btn }} w-100">{{ label }}</a>
+          </div>
+          {% endfor %}
         </div>
       </div>
     </div>
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">📦</div>
-          <h5>All Donations</h5>
-          <p class="text-muted">View all platform donations</p>
-          <a href="/donations" class="btn btn-primary">View Donations</a>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="mb-3" style="font-size: 3rem">📊</div>
-          <h5>Transactions</h5>
-          <p class="text-muted">Monitor all transactions</p>
-          <a href="/admin/transactions" class="btn btn-outline-success"
-            >View Transactions</a
-          >
-        </div>
-      </div>
-    </div>
-  </div>
+  </section>
   {% endif %}
 
-  <!-- Profile Card -->
-  <div class="row mt-4">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0">Your Profile</h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6">
-              <p><strong>Name:</strong> {{ session.fullname }}</p>
-              <p><strong>Email:</strong> {{ session.email }}</p>
-            </div>
-            <div class="col-md-6">
-              <p><strong>Role:</strong> {{ session.role|capitalize }}</p>
-              <p><strong>User ID:</strong> {{ session.user_id }}</p>
-            </div>
+  <!-- ===== Profile Section ===== -->
+  <section class="mt-5">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0 fw-semibold">Your Profile</h5>
+      </div>
+      <div class="card-body">
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Name:</strong> {{ session.fullname }}</p>
+            <p><strong>Email:</strong> {{ session.email }}</p>
           </div>
-          <button class="btn btn-outline-primary mt-2" disabled>
-            Edit Profile (Coming Soon)
-          </button>
+          <div class="col-md-6">
+            <p><strong>Role:</strong> {{ session.role|capitalize }}</p>
+            <p><strong>User ID:</strong> {{ session.user_id }}</p>
+          </div>
         </div>
+        <button
+          class="btn btn-outline-primary mt-2"
+          onclick="window.location.href='/edit-profile'"
+        >
+          Edit Profile
+        </button>
       </div>
     </div>
-  </div>
+  </section>
 </div>
+
 {% endblock %}

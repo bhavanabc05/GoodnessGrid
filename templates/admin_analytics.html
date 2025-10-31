@@ -1,0 +1,324 @@
+{% extends "base.html" %} {% block title %}Analytics Dashboard - Admin{%
+endblock %} {% block content %}
+<div class="container-fluid my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>📊 Analytics Dashboard</h1>
+    <a href="/dashboard" class="btn btn-outline-success">Back to Dashboard</a>
+  </div>
+
+  <!-- Quick Stats Cards -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-3">
+      <div class="card text-center stats-card bg-success text-white">
+        <div class="card-body">
+          <h3>{{ stats.total_users or 0 }}</h3>
+          <p class="mb-0">Total Users</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center stats-card bg-primary text-white">
+        <div class="card-body">
+          <h3>{{ stats.total_donations or 0 }}</h3>
+          <p class="mb-0">Total Donations</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center stats-card bg-warning text-white">
+        <div class="card-body">
+          <h3>{{ stats.total_transactions or 0 }}</h3>
+          <p class="mb-0">Transactions</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="card text-center stats-card bg-info text-white">
+        <div class="card-body">
+          <h3>{{ stats.completion_rate or 0 }}%</h3>
+          <p class="mb-0">Completion Rate</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="row g-4 mb-4">
+    <!-- Donation Trends Chart -->
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">📈 Donations Over Time (Last 30 Days)</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="donationTrendsChart" height="80"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Donation Type Distribution -->
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">🎯 Donation Types</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="typeDistributionChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="row g-4 mb-4">
+    <!-- Completion Rate Trend -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">✅ Completion Rate Trend</h5>
+        </div>
+        <div class="card-body">
+          <canvas id="completionTrendChart" height="100"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Donors -->
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-white">
+          <h5 class="mb-0">🏆 Top 5 Donors</h5>
+        </div>
+        <div class="card-body">
+          {% if top_donors %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Name</th>
+                  <th>Total Donations</th>
+                  <th>Completed</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for donor in top_donors %}
+                <tr>
+                  <td>
+                    {% if loop.index == 1 %}🥇 {% elif loop.index == 2 %}🥈 {%
+                    elif loop.index == 3 %}🥉 {% else %}{{ loop.index }} {%
+                    endif %}
+                  </td>
+                  <td>{{ donor.name }}</td>
+                  <td>
+                    <span class="badge bg-primary"
+                      >{{ donor.total_donations }}</span
+                    >
+                  </td>
+                  <td>
+                    <span class="badge bg-success"
+                      >{{ donor.completed_donations }}</span
+                    >
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <p class="text-center text-muted">No donor data available yet</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- User Statistics by Role -->
+  <div class="row g-4 mb-4">
+    <div class="col-md-12">
+      <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+          <h5 class="mb-0">👥 User Statistics by Role</h5>
+        </div>
+        <div class="card-body">
+          <div class="row text-center">
+            <div class="col-md-3">
+              <div class="stat-box">
+                <h2 class="text-success">
+                  {{ stats.users_by_role.get('donor', 0) }}
+                </h2>
+                <p class="text-muted">Donors</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-box">
+                <h2 class="text-primary">
+                  {{ stats.users_by_role.get('receiver', 0) +
+                  stats.users_by_role.get('ngo', 0) }}
+                </h2>
+                <p class="text-muted">NGOs/Receivers</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-box">
+                <h2 class="text-warning">
+                  {{ stats.users_by_role.get('volunteer', 0) }}
+                </h2>
+                <p class="text-muted">Volunteers</p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="stat-box">
+                <h2 class="text-danger">
+                  {{ stats.users_by_role.get('admin', 0) }}
+                </h2>
+                <p class="text-muted">Admins</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+  // Prepare data for charts
+  const donationTrends = {{ donation_trends|tojson }};
+  const typeDistribution = {{ type_distribution|tojson }};
+  const completionTrends = {{ completion_trends|tojson }};
+
+  // Chart 1: Donation Trends (Line Chart)
+  const donationDates = donationTrends.map(d => d.date);
+  const donationCounts = donationTrends.map(d => d.count);
+
+  new Chart(document.getElementById('donationTrendsChart'), {
+      type: 'line',
+      data: {
+          labels: donationDates,
+          datasets: [{
+              label: 'Donations Posted',
+              data: donationCounts,
+              borderColor: '#4caf50',
+              backgroundColor: 'rgba(76, 175, 80, 0.1)',
+              tension: 0.4,
+              fill: true
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+              legend: {
+                  display: true,
+                  position: 'top'
+              }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  ticks: {
+                      stepSize: 1
+                  }
+              }
+          }
+      }
+  });
+
+  // Chart 2: Donation Type Distribution (Pie Chart)
+  const typeLabels = typeDistribution.map(d => d.type.charAt(0).toUpperCase() + d.type.slice(1));
+  const typeCounts = typeDistribution.map(d => d.count);
+
+  new Chart(document.getElementById('typeDistributionChart'), {
+      type: 'doughnut',
+      data: {
+          labels: typeLabels,
+          datasets: [{
+              data: typeCounts,
+              backgroundColor: [
+                  '#4caf50',
+                  '#2196f3',
+                  '#ff9800',
+                  '#f44336',
+                  '#9c27b0',
+                  '#00bcd4',
+                  '#ffeb3b'
+              ]
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+              legend: {
+                  position: 'bottom'
+              }
+          }
+      }
+  });
+
+  // Chart 3: Completion Rate Trend (Bar Chart)
+  const completionDates = completionTrends.map(d => d.date);
+  const completionRates = completionTrends.map(d => {
+      return d.total > 0 ? ((d.completed / d.total) * 100).toFixed(1) : 0;
+  });
+
+  new Chart(document.getElementById('completionTrendChart'), {
+      type: 'bar',
+      data: {
+          labels: completionDates,
+          datasets: [{
+              label: 'Completion Rate (%)',
+              data: completionRates,
+              backgroundColor: '#2196f3',
+              borderColor: '#1976d2',
+              borderWidth: 1
+          }]
+      },
+      options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+              legend: {
+                  display: true
+              }
+          },
+          scales: {
+              y: {
+                  beginAtZero: true,
+                  max: 100,
+                  ticks: {
+                      callback: function(value) {
+                          return value + '%';
+                      }
+                  }
+              }
+          }
+      }
+  });
+</script>
+
+<style>
+  .stats-card {
+    transition: transform 0.3s ease;
+  }
+
+  .stats-card:hover {
+    transform: translateY(-5px);
+  }
+
+  .stat-box {
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f5f5f5;
+  }
+
+  .stat-box h2 {
+    margin: 0;
+    font-weight: bold;
+  }
+</style>
+{% endblock %}

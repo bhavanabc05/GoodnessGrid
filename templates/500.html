@@ -1,0 +1,54 @@
+{% extends "base.html" %} {% block title %}Server Error - Goodness Grid{%
+endblock %} {% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center">
+      <div class="error-page">
+        <h1 class="display-1 text-danger">500</h1>
+        <h2 class="mb-4">Internal Server Error</h2>
+        <p class="lead mb-4">
+          Oops! Something went wrong on our end. We're working to fix it.
+        </p>
+        <div class="mb-4">
+          <svg width="200" height="200" viewBox="0 0 200 200">
+            <circle
+              cx="100"
+              cy="100"
+              r="80"
+              fill="#ffebee"
+              stroke="#f44336"
+              stroke-width="3"
+            />
+            <text
+              x="100"
+              y="120"
+              font-size="80"
+              text-anchor="middle"
+              fill="#f44336"
+            >
+              !
+            </text>
+          </svg>
+        </div>
+        <div class="d-grid gap-2 d-md-block">
+          <a href="/" class="btn btn-danger btn-lg me-2">Go to Homepage</a>
+          <a
+            href="javascript:history.back()"
+            class="btn btn-outline-danger btn-lg"
+            >Go Back</a
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .error-page {
+    padding: 3rem 0;
+  }
+  .error-page h1 {
+    font-weight: 900;
+  }
+</style>
+{% endblock %}

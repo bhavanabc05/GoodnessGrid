@@ -1,0 +1,114 @@
+{% extends "base.html" %} {% block title %}Edit Profile - Goodness Grid{%
+endblock %} {% block content %}
+<div class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0">Edit Profile</h3>
+        </div>
+        <div class="card-body p-4">
+          <form action="/edit-profile" method="POST" id="editProfileForm">
+            <!-- Name -->
+            <div class="mb-3">
+              <label for="name" class="form-label">Full Name *</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                name="name"
+                value="{{ user.name }}"
+                required
+                minlength="3"
+              />
+            </div>
+
+            <!-- Phone -->
+            <div class="mb-3">
+              <label for="phone" class="form-label">Phone Number *</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="phone"
+                name="phone"
+                value="{{ user.phone }}"
+                pattern="[0-9]{10}"
+                required
+              />
+              <small class="text-muted">10-digit mobile number</small>
+            </div>
+
+            <!-- Address -->
+            <div class="mb-3">
+              <label for="address" class="form-label">Address *</label>
+              <textarea
+                class="form-control"
+                id="address"
+                name="address"
+                rows="3"
+                required
+                minlength="10"
+              >
+{{ user.address }}</textarea
+              >
+              <small class="text-muted">Enter your complete address</small>
+            </div>
+
+            <!-- Email (Read-only) -->
+            <div class="mb-3">
+              <label for="email" class="form-label"
+                >Email (Cannot be changed)</label
+              >
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                value="{{ user.email }}"
+                readonly
+                disabled
+              />
+            </div>
+
+            <!-- Role (Read-only) -->
+            <div class="mb-4">
+              <label for="role" class="form-label"
+                >Role (Cannot be changed)</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="role"
+                value="{{ user.role|capitalize }}"
+                readonly
+                disabled
+              />
+            </div>
+
+            <!-- Buttons -->
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary btn-lg">
+                Save Changes
+              </button>
+              <a href="/profile" class="btn btn-outline-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Client-side validation
+  document
+    .getElementById("editProfileForm")
+    .addEventListener("submit", function (e) {
+      const phone = document.getElementById("phone").value;
+
+      if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+        e.preventDefault();
+        alert("Phone number must be exactly 10 digits!");
+      }
+    });
+</script>
+{% endblock %}

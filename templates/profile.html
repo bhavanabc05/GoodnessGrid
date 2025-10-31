@@ -1,0 +1,193 @@
+{% extends "base.html" %} {% block title %}My Profile - Goodness Grid{% endblock
+%} {% block content %}
+<div class="container my-5">
+  <div class="row">
+    <!-- Profile Card -->
+    <div class="col-md-4">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <!-- Profile Avatar -->
+          <div class="profile-avatar mb-3">
+            <div class="avatar-circle">{{ user.name[0]|upper }}</div>
+          </div>
+
+          <h3>{{ user.name }}</h3>
+          <p class="text-muted">{{ user.email }}</p>
+
+          <span
+            class="badge {% if user.role == 'admin' %}bg-danger {% elif user.role == 'donor' %}bg-success {% elif user.role == 'receiver' or user.role == 'ngo' %}bg-primary {% elif user.role == 'volunteer' %}bg-warning {% endif %} mb-3"
+          >
+            {{ user.role|upper }}
+          </span>
+
+          {% if user.verified %}
+          <p><span class="badge bg-success">✓ Verified</span></p>
+          {% else %}
+          <p><span class="badge bg-secondary">Not Verified</span></p>
+          {% endif %}
+
+          <hr />
+
+          <div class="d-grid gap-2">
+            <a href="/edit-profile" class="btn btn-primary">Edit Profile</a>
+            <a href="/change-password" class="btn btn-outline-secondary"
+              >Change Password</a
+            >
+            <a href="/dashboard" class="btn btn-outline-success"
+              >Back to Dashboard</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="col-md-8">
+      <!-- Personal Information -->
+      <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">Personal Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-4"><strong>Full Name:</strong></div>
+            <div class="col-md-8">{{ user.name }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4"><strong>Email:</strong></div>
+            <div class="col-md-8">{{ user.email }}</div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4"><strong>Phone:</strong></div>
+            <div class="col-md-8">
+              {{ user.phone if user.phone else 'Not provided' }}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4"><strong>Address:</strong></div>
+            <div class="col-md-8">
+              {{ user.address if user.address else 'Not provided' }}
+            </div>
+          </div>
+          <div class="row mb-3">
+            <div class="col-md-4"><strong>Role:</strong></div>
+            <div class="col-md-8">{{ user.role|capitalize }}</div>
+          </div>
+          <div class="row">
+            <div class="col-md-4"><strong>Member Since:</strong></div>
+            <div class="col-md-8">
+              {{ user.created_at.strftime('%B %d, %Y') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Statistics -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-info text-white">
+          <h5 class="mb-0">Activity Summary</h5>
+        </div>
+        <div class="card-body">
+          {% if user.role == 'donor' %}
+          <div class="row text-center">
+            <div class="col-md-3">
+              <h3 class="text-success">{{ stats.total if stats else 0 }}</h3>
+              <p class="text-muted mb-0">Total Donations</p>
+            </div>
+            <div class="col-md-3">
+              <h3 class="text-warning">
+                {{ stats.available if stats else 0 }}
+              </h3>
+              <p class="text-muted mb-0">Available</p>
+            </div>
+            <div class="col-md-3">
+              <h3 class="text-info">{{ stats.claimed if stats else 0 }}</h3>
+              <p class="text-muted mb-0">Claimed</p>
+            </div>
+            <div class="col-md-3">
+              <h3 class="text-primary">
+                {{ stats.completed if stats else 0 }}
+              </h3>
+              <p class="text-muted mb-0">Completed</p>
+            </div>
+          </div>
+
+          {% elif user.role == 'receiver' or user.role == 'ngo' %}
+          <div class="row text-center">
+            <div class="col-md-4">
+              <h3 class="text-success">
+                {{ stats.total_claimed if stats else 0 }}
+              </h3>
+              <p class="text-muted mb-0">Total Claimed</p>
+            </div>
+            <div class="col-md-4">
+              <h3 class="text-warning">{{ stats.pending if stats else 0 }}</h3>
+              <p class="text-muted mb-0">Pending</p>
+            </div>
+            <div class="col-md-4">
+              <h3 class="text-info">{{ stats.completed if stats else 0 }}</h3>
+              <p class="text-muted mb-0">Completed</p>
+            </div>
+          </div>
+
+          {% elif user.role == 'volunteer' %}
+          <div class="row text-center">
+            <div class="col-md-4">
+              <h3 class="text-success">
+                {{ stats.total_tasks if stats else 0 }}
+              </h3>
+              <p class="text-muted mb-0">Total Tasks</p>
+            </div>
+            <div class="col-md-4">
+              <h3 class="text-warning">{{ stats.active if stats else 0 }}</h3>
+              <p class="text-muted mb-0">Active</p>
+            </div>
+            <div class="col-md-4">
+              <h3 class="text-info">{{ stats.completed if stats else 0 }}</h3>
+              <p class="text-muted mb-0">Completed</p>
+            </div>
+          </div>
+
+          {% else %}
+          <p class="text-center text-muted">
+            Activity statistics not available for this role
+          </p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .avatar-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #2e7d32, #4caf50);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 0 auto;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .profile-avatar {
+    animation: fadeInUp 0.6s ease-out;
+  }
+
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
+{% endblock %}
