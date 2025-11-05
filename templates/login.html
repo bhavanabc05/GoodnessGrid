@@ -35,6 +35,16 @@
               data-bs-dismiss="alert"
             ></button>
           </div>
+          {% endif %} {% if unverified_email %}
+          <div class="alert alert-warning">
+            <p class="mb-2">Didn't receive the verification email?</p>
+            <a
+              href="/resend-verification?email={{ unverified_email }}"
+              class="btn btn-sm btn-warning"
+            >
+              Resend Verification Email
+            </a>
+          </div>
           {% endif %}
 
           <!-- Login Form -->

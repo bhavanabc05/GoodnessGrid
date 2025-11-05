@@ -1,5 +1,11 @@
 # Import necessary modules
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from flask_mail import Mail, Message
+from config import (SECRET_KEY, DEBUG, PORT, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, 
+                   MAX_FILE_SIZE, MAIL_SERVER, MAIL_PORT, MAIL_USE_TLS, 
+                   MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER, BASE_URL)
 import csv
+import os
 from io import StringIO, BytesIO
 from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, make_response
@@ -14,14 +20,252 @@ from database import (create_user, verify_user, get_user_by_email, test_connecti
                      get_user_by_id, get_donation_trends, get_donation_type_distribution,
                      get_completion_rate_trend, get_user_growth_data, get_top_donors,
                      get_all_donations_for_export, get_all_users_for_export,
-                     get_all_transactions_for_export)
-from config import SECRET_KEY, DEBUG, PORT
+                     get_all_transactions_for_export, verify_user_email, is_email_verified)
+
 
 
 
 # Create Flask app
 app = Flask(__name__)
 app.secret_key = SECRET_KEY
+
+# Configure upload folder
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
+
+# Configure email
+app.config['MAIL_SERVER'] = MAIL_SERVER
+app.config['MAIL_PORT'] = MAIL_PORT
+app.config['MAIL_USE_TLS'] = MAIL_USE_TLS
+app.config['MAIL_USERNAME'] = MAIL_USERNAME
+app.config['MAIL_PASSWORD'] = MAIL_PASSWORD
+app.config['MAIL_DEFAULT_SENDER'] = MAIL_DEFAULT_SENDER
+app.config['BASE_URL'] = BASE_URL
+
+# Initialize Mail
+mail = Mail(app)
+serializer = URLSafeTimedSerializer(app.secret_key)
+
+# Ensure upload folder exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+def send_verification_email(user_email, user_name):
+    """
+    Send email verification link to new user
+    """
+    try:
+        # Generate token
+        token = serializer.dumps(user_email, salt='email-verification')
+        
+        # Create verification URL
+        verify_url = f"{app.config['BASE_URL']}/verify-email/{token}"
+        
+        # Create email
+        msg = Message(
+            subject='Verify Your Goodness Grid Account',
+            recipients=[user_email]
+        )
+        
+        msg.html = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; padding: 20px; background-color: #f5f5f5;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                <h2 style="color: #4caf50; text-align: center;">🌟 Welcome to Goodness Grid!</h2>
+                
+                <p>Hi <strong>{user_name}</strong>,</p>
+                
+                <p>Thank you for registering with Goodness Grid - A Network of Good Deeds!</p>
+                
+                <p>To activate your account and start making a difference, please verify your email address by clicking the button below:</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{verify_url}" style="background-color: #4caf50; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+                        ✓ Verify Email Address
+                    </a>
+                </div>
+                
+                <p style="color: #666; font-size: 14px;">Or copy and paste this link in your browser:</p>
+                <p style="background: #f5f5f5; padding: 10px; border-radius: 5px; word-break: break-all; font-size: 12px;">
+                    {verify_url}
+                </p>
+                
+                <p style="color: #666; font-size: 14px; margin-top: 30px;">
+                    <strong>Note:</strong> This verification link will expire in 24 hours.
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                
+                <p style="color: #999; font-size: 12px; text-align: center;">
+                    If you didn't create an account with Goodness Grid, please ignore this email.
+                </p>
+            </div>
+        </body>
+        </html>
+        """
+        
+        mail.send(msg)
+        print(f"✅ Verification email sent to {user_email}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Failed to send verification email: {e}")
+        return False
+
+
+def send_notification_email(recipient_email, subject, body_html):
+    """
+    Generic function to send notification emails
+    """
+    try:
+        msg = Message(
+            subject=subject,
+            recipients=[recipient_email]
+        )
+        msg.html = body_html
+        
+        mail.send(msg)
+        print(f"✅ Email sent to {recipient_email}")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Failed to send email: {e}")
+        return False
+
+
+def send_donation_claimed_email(donor_email, donor_name, donation_desc, ngo_name):
+    """
+    Notify donor when their donation is claimed
+    """
+    body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px;">
+            <h2 style="color: #4caf50;">🎉 Your Donation Has Been Claimed!</h2>
+            
+            <p>Hi <strong>{donor_name}</strong>,</p>
+            
+            <p>Great news! Your donation has been claimed by an NGO.</p>
+            
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Donation:</strong> {donation_desc}</p>
+                <p><strong>Claimed by:</strong> {ngo_name}</p>
+            </div>
+            
+            <p>A volunteer will be assigned soon to arrange pickup. You'll receive another notification when the pickup is scheduled.</p>
+            
+            <p style="margin-top: 30px;">Thank you for your generosity! 💚</p>
+            
+            <p style="color: #666; font-size: 12px; margin-top: 30px;">
+                - Team Goodness Grid
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return send_notification_email(donor_email, "Your Donation Has Been Claimed", body)
+
+
+def send_pickup_assigned_email(volunteer_email, volunteer_name, donation_desc, donor_name, ngo_name):
+    """
+    Notify volunteer when assigned to a pickup
+    """
+    body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px;">
+            <h2 style="color: #ff9800;">🚚 New Pickup Assignment</h2>
+            
+            <p>Hi <strong>{volunteer_name}</strong>,</p>
+            
+            <p>You have been assigned a new pickup task!</p>
+            
+            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Donation:</strong> {donation_desc}</p>
+                <p><strong>Pickup from:</strong> {donor_name}</p>
+                <p><strong>Deliver to:</strong> {ngo_name}</p>
+            </div>
+            
+            <p>Please login to your dashboard to view full pickup details including addresses and contact information.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{app.config['BASE_URL']}/volunteer-pickups" style="background-color: #ff9800; color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold; display: inline-block;">
+                    View Pickup Details
+                </a>
+            </div>
+            
+            <p style="color: #666; font-size: 12px; margin-top: 30px;">
+                - Team Goodness Grid
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return send_notification_email(volunteer_email, "New Pickup Assignment", body)
+
+
+def send_delivery_completed_email(donor_email, ngo_email, donor_name, ngo_name, donation_desc):
+    """
+    Notify both donor and NGO when delivery is completed
+    """
+    # Email to donor
+    donor_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px;">
+            <h2 style="color: #4caf50;">✅ Donation Delivered Successfully!</h2>
+            
+            <p>Hi <strong>{donor_name}</strong>,</p>
+            
+            <p>Your donation has been successfully delivered!</p>
+            
+            <div style="background: #e8f5e9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Donation:</strong> {donation_desc}</p>
+                <p><strong>Delivered to:</strong> {ngo_name}</p>
+            </div>
+            
+            <p>Thank you for making a difference in someone's life! Your kindness helps build a better community. 💚</p>
+            
+            <p style="margin-top: 30px;">We hope to see more contributions from you!</p>
+            
+            <p style="color: #666; font-size: 12px; margin-top: 30px;">
+                - Team Goodness Grid
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    # Email to NGO
+    ngo_body = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; padding: 20px;">
+        <div style="max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px;">
+            <h2 style="color: #2196f3;">📦 Donation Received!</h2>
+            
+            <p>Hi <strong>{ngo_name}</strong>,</p>
+            
+            <p>The donation you claimed has been successfully delivered to you.</p>
+            
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p><strong>Donation:</strong> {donation_desc}</p>
+                <p><strong>From:</strong> {donor_name}</p>
+            </div>
+            
+            <p>We hope this donation helps you serve your community better!</p>
+            
+            <p style="color: #666; font-size: 12px; margin-top: 30px;">
+                - Team Goodness Grid
+            </p>
+        </div>
+    </body>
+    </html>
+    """
+    
+    send_notification_email(donor_email, "Donation Delivered Successfully", donor_body)
+    send_notification_email(ngo_email, "Donation Received", ngo_body)
+
 
 # Test database connection on startup
 print("\n" + "="*50)
@@ -37,12 +281,10 @@ def home():
     """Homepage - shows different content if user is logged in"""
     return render_template('home.html')
 
-
-# REGISTER ROUTE
-# REGISTER ROUTE with Enhanced Validation
+# REGISTER ROUTE with Email Verification
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    """Registration page with comprehensive validation"""
+    """Registration page with email verification"""
     
     if request.method == 'POST':
         try:
@@ -53,49 +295,40 @@ def register():
             password = request.form.get('password', '')
             confirm_password = request.form.get('confirm_password', '')
             
-            # Validation checks
+            # Validation checks (keep existing validation)
             errors = []
             
-            # Check required fields
             if not all([fullname, email, phone, role, password, confirm_password]):
                 errors.append('All fields are required!')
             
-            # Name validation
             if fullname and len(fullname) < 3:
                 errors.append('Name must be at least 3 characters long!')
             
-            # Email validation
             if email:
                 if not '@' in email or not '.' in email.split('@')[1]:
                     errors.append('Please enter a valid email address!')
                 
-                # Check if email exists
                 existing_user = get_user_by_email(email)
                 if existing_user:
                     errors.append('Email already registered! Please login.')
             
-            # Phone validation
             if phone and not phone.isdigit():
                 errors.append('Phone number must contain only digits!')
             if phone and len(phone) != 10:
                 errors.append('Phone number must be exactly 10 digits!')
             
-            # Role validation
             if role and role not in ['donor', 'receiver', 'volunteer', 'ngo']:
                 errors.append('Invalid role selected!')
             
-            # Password validation
             if password:
                 if len(password) < 6:
                     errors.append('Password must be at least 6 characters!')
                 if not any(c.isdigit() for c in password):
                     errors.append('Password must contain at least one number!')
             
-            # Password match
             if password != confirm_password:
                 errors.append('Passwords do not match!')
             
-            # If there are errors, show them
             if errors:
                 for error in errors:
                     flash(error, 'danger')
@@ -121,7 +354,15 @@ def register():
             
             if user_id:
                 print(f"✅ User created successfully! ID: {user_id}")
-                flash('Account created successfully! Please login.', 'success')
+                
+                # Send verification email
+                email_sent = send_verification_email(email, fullname)
+                
+                if email_sent:
+                    flash('Account created! Please check your email to verify your account before logging in.', 'success')
+                else:
+                    flash('Account created but verification email failed. Please contact support.', 'warning')
+                
                 return redirect(url_for('login'))
             else:
                 flash('Registration failed. Please try again.', 'danger')
@@ -134,29 +375,35 @@ def register():
     
     return render_template('register.html')
 
-
 # LOGIN ROUTE
 # LOGIN ROUTE with Enhanced Validation
+# LOGIN ROUTE with Email Verification Check
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Login page with better error handling"""
+    """Login page with email verification check"""
     
     if request.method == 'POST':
         try:
             email = request.form.get('email', '').strip().lower()
             password = request.form.get('password', '')
             
-            # Validation
             if not email or not password:
                 flash('Please enter both email and password!', 'warning')
                 return render_template('login.html')
             
-            # Verify user
+            # Verify user credentials
             user = verify_user(email, password)
             
             if not user:
                 flash('Invalid email or password! Please try again.', 'danger')
                 return render_template('login.html')
+            
+            # Check if email is verified
+            from database import is_email_verified
+            if not is_email_verified(email):
+                flash('Please verify your email before logging in. Check your inbox for the verification link.', 'warning')
+                # Offer to resend verification
+                return render_template('login.html', unverified_email=email)
             
             # Store user info in session
             session['user_id'] = user['user_id']
@@ -364,6 +611,7 @@ def donate():
     return redirect(url_for('post_donation'))
 
 # CLAIM DONATION ROUTE
+# CLAIM DONATION ROUTE with Email Notification
 @app.route('/claim-donation/<int:donation_id>', methods=['POST'])
 def claim_donation_route(donation_id):
     """NGO claims a donation"""
@@ -374,12 +622,28 @@ def claim_donation_route(donation_id):
     if session.get('role') not in ['receiver', 'ngo']:
         return redirect(url_for('view_donations'))
     
-    success = claim_donation(donation_id, session['user_id'])
+    # Get donation details before claiming
+    donation = get_donation_by_id(donation_id)
     
-    if success:
-        return redirect(url_for('view_donations'))
-    else:
-        return redirect(url_for('view_donations'))
+    if donation:
+        success = claim_donation(donation_id, session['user_id'])
+        
+        if success:
+            # Send email notification to donor
+            donor_user = get_user_by_id(donation['donor_id'])
+            if donor_user and donor_user.get('email_verified'):
+                send_donation_claimed_email(
+                    donor_user['email'],
+                    donor_user['name'],
+                    donation['description'],
+                    session['fullname']
+                )
+            
+            flash('Donation claimed successfully!', 'success')
+            return redirect(url_for('view_donations'))
+    
+    flash('Failed to claim donation.', 'danger')
+    return redirect(url_for('view_donations'))
     
 # MY CLAIMS (for NGOs/receivers)
 @app.route('/my-claims')
@@ -418,6 +682,7 @@ def volunteer_pickups():
 
 
 # VOLUNTEER ACCEPTS PICKUP
+# VOLUNTEER ACCEPTS PICKUP with Email Notification
 @app.route('/accept-pickup/<int:transaction_id>', methods=['POST'])
 def accept_pickup(transaction_id):
     """Volunteer accepts a pickup task"""
@@ -428,15 +693,36 @@ def accept_pickup(transaction_id):
     if session.get('role') != 'volunteer':
         return redirect(url_for('volunteer_pickups'))
     
+    # Get transaction details
+    from database import get_user_by_id
+    
     success = assign_volunteer_to_transaction(transaction_id, session['user_id'])
     
     if success:
+        # Get full transaction details for email
+        transactions = get_all_transactions_admin()
+        txn = next((t for t in transactions if t['transaction_id'] == transaction_id), None)
+        
+        if txn:
+            # Send email to volunteer (already logged in, but for records)
+            volunteer_user = get_user_by_id(session['user_id'])
+            if volunteer_user and volunteer_user.get('email_verified'):
+                send_pickup_assigned_email(
+                    volunteer_user['email'],
+                    volunteer_user['name'],
+                    txn['description'],
+                    txn['donor_name'],
+                    txn['ngo_name']
+                )
+        
+        flash('Pickup task accepted!', 'success')
         return redirect(url_for('volunteer_pickups'))
-    else:
-        return redirect(url_for('volunteer_pickups'))
-
+    
+    flash('Failed to accept pickup.', 'danger')
+    return redirect(url_for('volunteer_pickups'))
 
 # COMPLETE DELIVERY
+# COMPLETE DELIVERY with Email Notifications
 @app.route('/complete-delivery/<int:transaction_id>', methods=['POST'])
 def complete_delivery(transaction_id):
     """Volunteer marks delivery as completed"""
@@ -447,12 +733,34 @@ def complete_delivery(transaction_id):
     if session.get('role') != 'volunteer':
         return redirect(url_for('volunteer_pickups'))
     
+    # Get transaction details before completing
+    transactions = get_all_transactions_admin()
+    txn = next((t for t in transactions if t['transaction_id'] == transaction_id), None)
+    
     success = complete_transaction(transaction_id)
     
-    if success:
+    if success and txn:
+        # Get donor and NGO details
+        donation = get_donation_by_id(txn['donation_id'])
+        if donation:
+            donor_user = get_user_by_id(donation['donor_id'])
+            ngo_user = get_user_by_id(txn['ngo_id'])
+            
+            # Send completion emails to both
+            if donor_user and donor_user.get('email_verified') and ngo_user and ngo_user.get('email_verified'):
+                send_delivery_completed_email(
+                    donor_user['email'],
+                    ngo_user['email'],
+                    donor_user['name'],
+                    ngo_user['name'],
+                    txn['description']
+                )
+        
+        flash('Delivery marked as completed!', 'success')
         return redirect(url_for('volunteer_pickups'))
-    else:
-        return redirect(url_for('volunteer_pickups'))
+    
+    flash('Failed to complete delivery.', 'danger')
+    return redirect(url_for('volunteer_pickups'))
     
 # ADMIN ROUTES
 
@@ -902,6 +1210,66 @@ def export_summary():
         flash('Failed to export summary. Please try again.', 'danger')
         return redirect(url_for('dashboard'))
     
+# EMAIL VERIFICATION ROUTES
+
+@app.route('/verify-email/<token>')
+def verify_email(token):
+    """Verify user email from token"""
+    try:
+        # Decode token (expires in 24 hours)
+        email = serializer.loads(token, salt='email-verification', max_age=86400)
+        
+        # Verify email in database
+        from database import verify_user_email
+        success = verify_user_email(email)
+        
+        if success:
+            flash('Email verified successfully! You can now login.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Email verification failed. Please try again.', 'danger')
+            return redirect(url_for('login'))
+            
+    except SignatureExpired:
+        flash('Verification link has expired. Please register again.', 'danger')
+        return redirect(url_for('register'))
+    except BadSignature:
+        flash('Invalid verification link.', 'danger')
+        return redirect(url_for('register'))
+    except Exception as e:
+        print(f"Verification error: {e}")
+        flash('Verification failed. Please contact support.', 'danger')
+        return redirect(url_for('login'))
+
+
+@app.route('/resend-verification')
+def resend_verification():
+    """Resend verification email"""
+    email = request.args.get('email')
+    
+    if not email:
+        flash('Email address required.', 'danger')
+        return redirect(url_for('login'))
+    
+    user = get_user_by_email(email)
+    
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('login'))
+    
+    if user['email_verified']:
+        flash('Email already verified. Please login.', 'info')
+        return redirect(url_for('login'))
+    
+    # Send verification email
+    email_sent = send_verification_email(email, user['name'])
+    
+    if email_sent:
+        flash('Verification email sent! Please check your inbox.', 'success')
+    else:
+        flash('Failed to send verification email. Please try again later.', 'danger')
+    
+    return redirect(url_for('login'))
    
 # Run the app
 if __name__ == '__main__':

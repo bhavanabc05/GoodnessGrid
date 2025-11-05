@@ -1209,6 +1209,61 @@ def get_all_transactions_for_export():
             connection.close()
         return []
     
+def verify_user_email(email):
+    """
+    Mark user email as verified
+    """
+    connection = get_db_connection()
+    if not connection:
+        return False
+    
+    try:
+        cursor = connection.cursor()
+        
+        query = "UPDATE Users SET email_verified = TRUE WHERE email = %s"
+        cursor.execute(query, (email,))
+        connection.commit()
+        
+        cursor.close()
+        connection.close()
+        
+        print(f"✅ Email verified for {email}")
+        return True
+        
+    except Error as e:
+        print(f"Error verifying email: {e}")
+        if connection:
+            connection.close()
+        return False
+
+
+def is_email_verified(email):
+    """
+    Check if user's email is verified
+    """
+    connection = get_db_connection()
+    if not connection:
+        return False
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        query = "SELECT email_verified FROM Users WHERE email = %s"
+        cursor.execute(query, (email,))
+        
+        result = cursor.fetchone()
+        
+        cursor.close()
+        connection.close()
+        
+        return result['email_verified'] if result else False
+        
+    except Error as e:
+        print(f"Error checking verification: {e}")
+        if connection:
+            connection.close()
+        return False
+
 # Test the connection when this file is run directly
 if __name__ == "__main__":
     print("Testing database connection...")
