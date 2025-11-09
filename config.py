@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# MySQL Database Configuration
+# ================= Database Configuration =================
 DB_CONFIG = {
     'host': os.environ.get('DB_HOST'),
     'user': os.environ.get('DB_USER'),
@@ -13,26 +13,24 @@ DB_CONFIG = {
     'port': 3306
 }
 
-# Flask Secret Key (for sessions)
+# ================= Flask Settings =================
 SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
-
-# Application Settings
 DEBUG = True
 PORT = 5000
 
-# Upload Configuration
+# ================= Upload Configuration =================
 UPLOAD_FOLDER = 'static/uploads/donations'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB in bytes
+MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
-# Email Configuration (Gmail SMTP)
+# ================= Email Configuration =================
 MAIL_SERVER = 'smtp.gmail.com'
 MAIL_PORT = 587
 MAIL_USE_TLS = True
 MAIL_USE_SSL = False
-MAIL_USERNAME = 'bhavanabc05@gmail.com'  # Replace with your Gmail
-MAIL_PASSWORD = 'ktdl kyns vhin rtum'      # Replace with App Password
-MAIL_DEFAULT_SENDER = 'bhavanabc05@gmail.com'
+MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
+MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
 
-# Base URL for verification links
+# ================= Base URL =================
 BASE_URL = 'http://127.0.0.1:5000'
