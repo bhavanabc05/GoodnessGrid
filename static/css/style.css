@@ -305,3 +305,25 @@ footer p {
     transform: rotate(360deg);
   }
 }
+
+.rating-display {
+  text-align: center;
+}
+
+.stars {
+  font-size: 1.5rem;
+  color: #ffc107;
+}
+
+.star.filled {
+  color: #ffc107;
+}
+
+.star {
+  color: #ddd;
+}
+
+.rating-text {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}

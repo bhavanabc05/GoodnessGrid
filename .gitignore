@@ -16,3 +16,6 @@ Thumbs.db
 
 # Environment variables
 .env
+
+# Ignore uploaded images
+uploads/

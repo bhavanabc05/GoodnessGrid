@@ -1,6 +1,8 @@
 # Import necessary modules
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 from flask_mail import Mail, Message
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, make_response, jsonify
+
 from config import (SECRET_KEY, DEBUG, PORT, UPLOAD_FOLDER, ALLOWED_EXTENSIONS, 
                    MAX_FILE_SIZE, MAIL_SERVER, MAIL_PORT, MAIL_USE_TLS, 
                    MAIL_USERNAME, MAIL_PASSWORD, MAIL_DEFAULT_SENDER, BASE_URL)
@@ -20,7 +22,8 @@ from database import (create_user, verify_user, get_user_by_email, test_connecti
                      get_user_by_id, get_donation_trends, get_donation_type_distribution,
                      get_completion_rate_trend, get_user_growth_data, get_top_donors,
                      get_all_donations_for_export, get_all_users_for_export,
-                     get_all_transactions_for_export, verify_user_email, is_email_verified)
+                     get_all_transactions_for_export, verify_user_email, is_email_verified,
+                     get_donation_by_id,get_recent_available_donations,get_average_rating_for_donor,add_feedback,get_feedback_for_donor)
 
 
 
@@ -375,8 +378,7 @@ def register():
     
     return render_template('register.html')
 
-# LOGIN ROUTE
-# LOGIN ROUTE with Enhanced Validation
+
 # LOGIN ROUTE with Email Verification Check
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -432,51 +434,64 @@ def dashboard():
     if 'email' not in session:
         return redirect(url_for('login'))
     
-    # Prepare data based on role
     dashboard_data = {
         'my_donations_count': 0,
         'available_count': 0,
         'claimed_count': 0,
         'completed_count': 0,
         'total_donations': 0,
-        'total_users': 0
+        'total_users': 0,
+        'recent_donations': [],
+        'avg_rating': 0,
+        'feedback_list': [],
     }
     
-    # For donors: get their donation stats
-    if session.get('role') == 'donor':
-        donations = get_donations_by_donor(session['user_id'])
+    role = session.get('role')
+    user_id = session.get('user_id')
+
+    # DONOR DASHBOARD
+    if role == 'donor':
+        donations = get_donations_by_donor(user_id)
         dashboard_data['my_donations_count'] = len(donations)
         dashboard_data['available_count'] = len([d for d in donations if d['status'] == 'available'])
         dashboard_data['claimed_count'] = len([d for d in donations if d['status'] == 'claimed'])
         dashboard_data['completed_count'] = len([d for d in donations if d['status'] == 'completed'])
+        dashboard_data['avg_rating'] = get_average_rating_for_donor(session['user_id'])
+        dashboard_data['feedback_list'] = get_feedback_for_donor(user_id)
+        # default for everyone
 
-        # For volunteers: show pickup stats
-    elif session.get('role') == 'volunteer':
+
+    # VOLUNTEER DASHBOARD
+    elif role == 'volunteer':
         pending = get_pending_pickups()
-        my_tasks = get_volunteer_assignments(session['user_id'])
+        my_tasks = get_volunteer_assignments(user_id)
         dashboard_data['pending_pickups'] = len(pending)
         dashboard_data['my_in_progress'] = len([t for t in my_tasks if t['status'] == 'in_progress'])
         dashboard_data['my_completed'] = len([t for t in my_tasks if t['status'] == 'completed'])
-    
 
-    elif session.get('role') in ['receiver', 'ngo']:
+    # RECEIVER / NGO DASHBOARD
+    elif role in ['receiver', 'ngo']:
         all_donations = get_all_donations(status='available')
-        claimed_donations = get_claimed_donations_by_ngo(session['user_id'])
+        claimed_donations = get_claimed_donations_by_ngo(user_id)
         dashboard_data['total_donations'] = len(all_donations)
         dashboard_data['claimed_count'] = len(claimed_donations)
         dashboard_data['completed_count'] = len([d for d in claimed_donations if d['status'] == 'completed'])
+        dashboard_data['recent_donations'] = get_recent_available_donations(limit=6)
 
-    # For admin: show overall stats
-    elif session.get('role') == 'admin':
+    # ADMIN DASHBOARD
+    elif role == 'admin':
         stats = get_platform_stats()
         dashboard_data.update(stats)
     
     return render_template('dashboard.html', **dashboard_data)
 
+
     
+from werkzeug.utils import secure_filename
 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# POST DONATION ROUTE
 # POST DONATION ROUTE with Enhanced Validation
 @app.route('/post-donation', methods=['GET', 'POST'])
 def post_donation():
@@ -499,7 +514,7 @@ def post_donation():
             pickup_time = request.form.get('pickup_time') or None
             expiry_date = request.form.get('expiry_date') or None
             notes = request.form.get('notes', '').strip()
-            
+            image_file=request.files.get('image')
             # Validation
             errors = []
             
@@ -511,6 +526,18 @@ def post_donation():
                 errors.append('Please specify quantity!')
             if not pickup_address or len(pickup_address) < 10:
                 errors.append('Please provide a complete pickup address!')
+            
+             # Validate image
+            image_path = None
+            if image_file and image_file.filename != '':
+                if allowed_file(image_file.filename):
+                    filename = secure_filename(image_file.filename)
+                    unique_name = f"{session['user_id']}_{int(datetime.now().timestamp())}_{filename}"
+                    image_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_name).replace('\\','/')
+                    image_file.save(image_path)
+                    print(f"✅ Image uploaded to: {image_path}")
+                else:
+                    errors.append('Invalid image format! Allowed: png, jpg, jpeg, gif.')
             
             if errors:
                 for error in errors:
@@ -526,7 +553,8 @@ def post_donation():
                 pickup_address=pickup_address,
                 pickup_time=pickup_time,
                 expiry_date=expiry_date,
-                notes=notes
+                notes=notes,
+                image_path=image_path
             )
             
             if donation_id:
@@ -584,6 +612,23 @@ def my_donations():
     donations = get_donations_by_donor(session['user_id'])
     
     return render_template('my_donations.html', donations=donations)
+
+
+@app.route('/api/donation/<int:donation_id>')
+def get_donation_details(donation_id):
+    """Returns JSON data for a specific donation"""
+    if 'email' not in session:
+        return jsonify({'success': False, 'error': 'Unauthorized'}), 401
+
+    donation = get_donation_by_id(donation_id)
+    if not donation:
+        return jsonify({'success': False, 'error': 'Donation not found'}), 404
+
+    # Convert datetime to string
+    if donation.get('created_at'):
+        donation['created_at'] = donation['created_at'].strftime("%Y-%m-%d %H:%M:%S")
+
+    return jsonify({'success': True, 'donation': donation})
 
 
 # LOGOUT ROUTE
@@ -1270,7 +1315,45 @@ def resend_verification():
         flash('Failed to send verification email. Please try again later.', 'danger')
     
     return redirect(url_for('login'))
-   
+  
+@app.route('/feedback/<int:donation_id>', methods=['POST'])
+def submit_feedback(donation_id):
+    """Receiver submits feedback for a donation"""
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    rating = request.form.get('rating')
+    comments = request.form.get('comments', '').strip()
+
+    if not rating or not rating.isdigit():
+        flash("Please select a valid star rating before submitting!", "danger")
+        return redirect(url_for('my_claims'))
+
+    rating = int(rating)
+
+    # Get donor_id from the donation
+    donation = get_donation_by_id(donation_id)
+    if not donation:
+        flash("Donation not found!", "danger")
+        return redirect(url_for('my_claims'))
+
+    donor_id = donation['donor_id']
+    receiver_id = session['user_id']
+
+    result = add_feedback(donation_id, donor_id, receiver_id, rating, comments)
+
+    if result == "exists":
+        flash("⚠️ You’ve already submitted feedback for this donation!", "warning")
+    elif result is True:
+        flash("✅ Feedback submitted successfully!", "success")
+    else:
+        flash("❌ Error submitting feedback. Please try again.", "danger")
+
+    return redirect(url_for('my_claims'))
+
+
+  
+ 
 # Run the app
 if __name__ == '__main__':
     app.run(debug=DEBUG, port=PORT)

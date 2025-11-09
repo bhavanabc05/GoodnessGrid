@@ -14,8 +14,8 @@
   <div class="row g-4">
     {% for donation in donations %}
     <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-warning text-white">
+      <div class="card shadow-sm rounded-4 border-0">
+        <div class="card-header bg-warning text-white rounded-top-4">
           <h5 class="mb-0">
             {% if donation.type == 'food' %}🍽️ {% elif donation.type ==
             'clothes' %}👕 {% elif donation.type == 'books' %}📚 {% elif
@@ -35,12 +35,29 @@
               >{{ donation.transaction_status|capitalize }}</span
             >
           </p>
-          <p class="text-muted">
-            <small
-              >Claimed on: {{ donation.created_at.strftime('%b %d, %Y')
-              }}</small
-            >
+          <p class="text-muted small">
+            Claimed on: {{ donation.created_at.strftime('%b %d, %Y') }}
           </p>
+
+          {% if donation.status == 'completed' %} {% if donation.has_feedback %}
+          <div class="mt-3 text-end text-muted small">
+            ✅ Feedback submitted
+          </div>
+          {% else %}
+          <div class="mt-3 text-end">
+            <button
+              class="btn btn-sm btn-outline-success"
+              onclick="openFeedbackModal('{{ donation.donation_id }}')"
+            >
+              💬 Give Feedback
+            </button>
+          </div>
+          {% endif %} {% else %}
+
+          <div class="mt-3 text-muted small text-end">
+            Feedback available after completion
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -55,4 +72,93 @@
   </div>
   {% endif %}
 </div>
+
+<!-- ================= Feedback Modal ================= -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Leave Feedback</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+        ></button>
+      </div>
+      <form action="" method="POST" id="feedbackForm">
+        <div class="modal-body">
+          <div class="mb-3 text-center">
+            <label class="form-label d-block mb-2"
+              ><strong>Rating</strong></label
+            >
+            <div id="starRating">
+              {% for i in range(1,6) %}
+              <i
+                class="bi bi-star fs-3 text-warning rating-star"
+                data-value="{{ i }}"
+              ></i>
+              {% endfor %}
+            </div>
+            <input type="hidden" name="rating" id="ratingInput" required />
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><strong>Feedback</strong></label>
+            <textarea
+              name="comments"
+              class="form-control"
+              rows="3"
+              required
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Submit</button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            data-bs-dismiss="modal"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Star rating interaction
+  document.addEventListener("DOMContentLoaded", function () {
+    const stars = document.querySelectorAll(".rating-star");
+    const ratingInput = document.getElementById("ratingInput");
+
+    stars.forEach((star) => {
+      star.addEventListener("click", () => {
+        const value = star.dataset.value;
+        ratingInput.value = value;
+        stars.forEach((s) => {
+          s.classList.toggle("bi-star-fill", s.dataset.value <= value);
+          s.classList.toggle("bi-star", s.dataset.value > value);
+        });
+      });
+    });
+
+    // prevent submitting without selecting a rating
+    const form = document.getElementById("feedbackForm");
+    form.addEventListener("submit", (e) => {
+      if (!ratingInput.value) {
+        e.preventDefault();
+        alert("Please select a star rating before submitting!");
+      }
+    });
+  });
+
+  // Dynamically set form action
+  function openFeedbackModal(donationId) {
+    const form = document.getElementById("feedbackForm");
+    form.action = `/feedback/${donationId}`;
+    const modal = new bootstrap.Modal(document.getElementById("feedbackModal"));
+    modal.show();
+  }
+</script>
 {% endblock %}

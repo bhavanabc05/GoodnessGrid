@@ -41,7 +41,11 @@ endblock %} {% block content %}
           {% endif %}
 
           <!-- Donation Form -->
-          <form action="/post-donation" method="POST">
+          <form
+            action="/post-donation"
+            method="POST"
+            enctype="multipart/form-data"
+          >
             <!-- Donation Type -->
             <div class="mb-4">
               <label for="type" class="form-label">
@@ -175,6 +179,11 @@ endblock %} {% block content %}
                 </li>
                 <li>You'll be notified when an NGO claims your donation</li>
               </ul>
+            </div>
+
+            <div class="form-group">
+              <label for="image">Upload Donation Image</label>
+              <input type="file" name="image" accept="image/*" />
             </div>
 
             <!-- Submit Buttons -->

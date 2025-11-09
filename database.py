@@ -199,7 +199,7 @@ def test_connection():
 
 
 def create_donation(donor_id, donation_type, description, quantity, 
-                   pickup_address, pickup_time=None, expiry_date=None, notes=None):
+                   pickup_address, pickup_time=None, expiry_date=None, notes=None,image_path=None):
     """
     Create a new donation in the database
     
@@ -226,13 +226,13 @@ def create_donation(donor_id, donation_type, description, quantity,
         query = """
         INSERT INTO Donations 
         (donor_id, type, description, quantity, pickup_address, 
-         pickup_time, expiry_date, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, 'available')
+         pickup_time, expiry_date, status,image_path)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, 'available',%s)
         """
         
         values = (
             donor_id, donation_type, description, quantity, 
-            pickup_address, pickup_time, expiry_date
+            pickup_address, pickup_time, expiry_date,image_path
         )
         
         cursor.execute(query, values)
@@ -353,6 +353,9 @@ def get_donation_by_id(donation_id):
         cursor.close()
         connection.close()
         
+        if donation and donation.get('image_path'):
+            donation['image_path'] = donation['image_path'].replace('\\', '/')
+
         return donation
         
     except Error as e:
@@ -390,38 +393,32 @@ def claim_donation(donation_id, ngo_id):
         return False
     
 def get_claimed_donations_by_ngo(ngo_id):
-    """
-    Get donations claimed by a specific NGO
-    """
     connection = get_db_connection()
     if not connection:
         return []
-    
+
     try:
         cursor = connection.cursor(dictionary=True)
-        
         query = """
-        SELECT d.*, t.transaction_id, t.status as transaction_status, u.name as donor_name
+        SELECT d.*, 
+               (SELECT COUNT(*) FROM Feedback f 
+                WHERE f.donation_id = d.donation_id 
+                  AND f.receiver_id = %s) AS has_feedback
         FROM Donations d
         JOIN Transactions t ON d.donation_id = t.donation_id
-        JOIN Users u ON d.donor_id = u.user_id
         WHERE t.ngo_id = %s
-        ORDER BY t.created_at DESC
         """
-        
-        cursor.execute(query, (ngo_id,))
+        cursor.execute(query, (ngo_id, ngo_id))
         donations = cursor.fetchall()
-        
         cursor.close()
         connection.close()
-        
         return donations
-        
     except Error as e:
-        print(f"Error fetching claimed donations: {e}")
+        print(f"❌ Error fetching claimed donations: {e}")
         if connection:
             connection.close()
         return []
+
     
 def get_pending_pickups():
     """
@@ -1263,6 +1260,125 @@ def is_email_verified(email):
         if connection:
             connection.close()
         return False
+    
+def get_recent_available_donations(limit=6):
+    """Fetch recent available donations (for receiver dashboard preview)"""
+    connection = get_db_connection()
+    if not connection:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = """
+        SELECT d.*, u.name AS donor_name
+        FROM Donations d
+        JOIN Users u ON d.donor_id = u.user_id
+        WHERE d.status = 'available'
+        ORDER BY d.created_at DESC
+        LIMIT %s
+        """
+        cursor.execute(query, (limit,))
+        result = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return result
+    except Error as e:
+        print(f"Error fetching recent donations: {e}")
+        if connection:
+            connection.close()
+        return []
+
+def add_feedback(donation_id, donor_id, receiver_id, rating, comments):
+    """Insert feedback only if the receiver hasn't already given feedback for this donation."""
+    connection = get_db_connection()
+    if not connection:
+        return False
+
+    try:
+        cursor = connection.cursor()
+
+        # ✅ Check if feedback already exists
+        check_query = """
+            SELECT COUNT(*) FROM Feedback
+            WHERE donation_id = %s AND receiver_id = %s
+        """
+        cursor.execute(check_query, (donation_id, receiver_id))
+        exists = cursor.fetchone()[0]
+
+        if exists > 0:
+            print(f"⚠️ Feedback already exists for donation_id={donation_id}, receiver_id={receiver_id}")
+            cursor.close()
+            connection.close()
+            return "exists"  # special flag
+
+        # ✅ Otherwise insert new feedback
+        query = """
+            INSERT INTO Feedback (donation_id, donor_id, receiver_id, rating, comments)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        cursor.execute(query, (donation_id, donor_id, receiver_id, rating, comments))
+        connection.commit()
+
+        cursor.close()
+        connection.close()
+        return True
+
+    except Error as e:
+        print(f"❌ Error adding feedback: {e}")
+        if connection:
+            connection.close()
+        return False
+
+
+
+def get_feedback_for_donor(donor_id):
+    """Fetch all feedback entries for a given donor"""
+    connection = get_db_connection()
+    if not connection:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        query = """
+        SELECT f.*, u.name AS receiver_name, d.description AS donation_description
+        FROM Feedback f
+        JOIN Users u ON f.receiver_id = u.user_id
+        JOIN Donations d ON f.donation_id = d.donation_id
+        WHERE f.donor_id = %s
+        ORDER BY f.created_at DESC
+        """
+        cursor.execute(query, (donor_id,))
+        rows = cursor.fetchall()
+        cursor.close()
+        connection.close()
+        return rows
+    except Error as e:
+        print(f"❌ Error fetching feedback for donor: {e}")
+        if connection:
+            connection.close()
+        return []
+
+
+def get_average_rating_for_donor(donor_id):
+    """Get donor’s average rating"""
+    connection = get_db_connection()
+    if not connection:
+        return 0
+
+    try:
+        cursor = connection.cursor()
+        query = "SELECT AVG(rating) FROM Feedback WHERE donor_id = %s"
+        cursor.execute(query, (donor_id,))
+        avg_rating = cursor.fetchone()[0]
+        cursor.close()
+        connection.close()
+        return round(avg_rating or 0, 1)
+    except Error as e:
+        print(f"❌ Error fetching average rating: {e}")
+        if connection:
+            connection.close()
+        return 0
+
 
 # Test the connection when this file is run directly
 if __name__ == "__main__":

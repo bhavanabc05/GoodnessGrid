@@ -78,9 +78,50 @@
         </div>
       </div>
     </div>
+    <div class="alert alert-info">
+      <strong>Your Average Rating:</strong>
+      {% if avg_rating > 0 %}
+      <span class="text-warning">
+        {% set rounded_rating = avg_rating|int %} {% for i in
+        range(rounded_rating) %}★{% endfor %} {% for i in range(5 -
+        rounded_rating) %}☆{% endfor %} ({{ "%.1f"|format(avg_rating) }}/5)
+      </span>
+      {% else %}
+      <span class="text-muted">No ratings yet</span>
+      {% endif %}
+    </div>
   </section>
+  <!-- Feedback Section --><!-- Donor Feedback Section -->
+  {% if feedback_list and feedback_list|length > 0 %}
+  <section class="mt-4">
+    <h4 class="fw-semibold text-success mb-3">💬 Feedback from Receivers</h4>
+    <div class="row g-3">
+      {% for fb in feedback_list %}
+      <div class="col-md-6">
+        <div class="card shadow-sm border-0 rounded-4">
+          <div class="card-body">
+            <h6 class="fw-bold text-primary mb-1">{{ fb.receiver_name }}</h6>
+            <p class="mb-2 text-muted small">
+              <strong>Donation:</strong> {{ fb.donation_description }}
+            </p>
+            <div class="text-warning mb-2">
+              {% for i in range(fb.rating) %}★{% endfor %} {% for i in range(5 -
+              fb.rating) %}☆{% endfor %}
+            </div>
+            <p class="mb-0">{{ fb.comments }}</p>
+            <p class="text-muted small mt-2">
+              {{ fb.created_at.strftime('%b %d, %Y') }}
+            </p>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% else %}
+  <div class="alert alert-light text-muted mt-3">No feedback received yet.</div>
 
-  {% elif session.role in ['receiver', 'ngo'] %}
+  {% endif %} {% elif session.role in ['receiver', 'ngo'] %}
   <!-- === RECEIVER / NGO DASHBOARD === -->
   <section class="mb-5">
     <h4 class="mb-3 fw-semibold text-success">Available Donations Overview</h4>
@@ -127,6 +168,48 @@
         </div>
       </div>
     </div>
+  </section>
+  <!-- === RECENT DONATIONS PREVIEW === -->
+  <section class="mt-5">
+    <h4 class="mb-3 fw-semibold text-secondary">Recent Donations</h4>
+    {% if recent_donations and recent_donations|length > 0 %}
+    <div class="row g-4">
+      {% for donation in recent_donations %}
+      <div class="col-md-4 col-sm-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+          {% if donation.image_path %}
+          <img
+            src="{{ url_for('static', filename=donation.image_path.split('static/')[-1]) }}"
+            class="card-img-top rounded-top-4"
+            alt="Donation Image"
+            style="height: 200px; object-fit: cover"
+          />
+          {% else %}
+          <div class="bg-light text-muted text-center py-5 rounded-top-4">
+            <i class="bi bi-box-seam fs-1"></i><br />No Image
+          </div>
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title text-success">
+              {{ donation.type|capitalize }}
+            </h5>
+            <p class="card-text small">
+              {{ donation.description[:70] }}{% if donation.description|length >
+              70 %}...{% endif %}
+            </p>
+            <a href="/donations" class="btn btn-outline-success btn-sm w-100"
+              >View More</a
+            >
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+      No recent donations available yet.
+    </div>
+    {% endif %}
   </section>
 
   {% elif session.role == 'volunteer' %}

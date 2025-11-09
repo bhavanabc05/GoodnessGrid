@@ -26,6 +26,7 @@ endblock %} {% block content %}
           <th>Status</th>
           <th>Posted On</th>
           <th>Actions</th>
+          <th></th>
         </tr>
       </thead>
       <tbody>
@@ -60,6 +61,8 @@ endblock %} {% block content %}
           <td>
             <button
               class="btn btn-sm btn-outline-primary view-details-btn"
+              data-bs-toggle="modal"
+              data-bs-target="#donationModal"
               data-donation-id="{{ donation.donation_id }}"
             >
               View
@@ -114,22 +117,107 @@ endblock %} {% block content %}
 </div>
 
 <script>
-  // Find all buttons with the class 'view-details-btn'
-  const viewButtons = document.querySelectorAll(".view-details-btn");
+  document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("donationModal");
+    const modalBody = document.getElementById("modal-content-body");
 
-  // Add a click event listener to each button
-  viewButtons.forEach((button) => {
-    button.addEventListener("click", function () {
-      // 'this' refers to the button that was clicked
-      // We get the ID from its 'data-donation-id' attribute
-      const donationId = this.dataset.donationId;
-      viewDetails(donationId);
+    document.querySelectorAll(".view-details-btn").forEach((button) => {
+      button.addEventListener("click", async function () {
+        const donationId = this.dataset.donationId;
+        modalBody.innerHTML = `
+          <div class="text-center py-5">
+            <div class="spinner-border text-success" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        `;
+
+        // Fetch donation details from Flask API
+        const response = await fetch(`/api/donation/${donationId}`);
+        const data = await response.json();
+
+        if (data.success) {
+          const d = data.donation;
+          modalBody.innerHTML = `
+            <div class="row g-4">
+              <div class="col-md-5 text-center">
+                ${
+                  d.image_path
+                    ? `<img src="/${d.image_path}" alt="Donation Image" class="img-fluid rounded-3 shadow-sm">`
+                    : `<div class="text-muted py-5 border rounded">No Image Available</div>`
+                }
+              </div>
+              <div class="col-md-7 text-start">
+                <h4 class="text-success mb-2">${d.type.toUpperCase()}</h4>
+                <p><strong>Description:</strong> ${d.description}</p>
+                <p><strong>Quantity:</strong> ${d.quantity}</p>
+                <p><strong>Status:</strong> 
+                  <span class="badge bg-${
+                    d.status === "available"
+                      ? "success"
+                      : d.status === "claimed"
+                      ? "warning"
+                      : "info"
+                  }">
+                    ${d.status.toUpperCase()}
+                  </span>
+                </p>
+                <p><strong>Pickup Address:</strong> ${d.pickup_address}</p>
+                ${
+                  d.pickup_time
+                    ? `<p><strong>Pickup Time:</strong> ${d.pickup_time}</p>`
+                    : ""
+                }
+                ${
+                  d.expiry_date
+                    ? `<p><strong>Expiry Date:</strong> ${d.expiry_date}</p>`
+                    : ""
+                }
+                <p><strong>Posted On:</strong> ${new Date(
+                  d.created_at
+                ).toLocaleDateString()}</p>
+              </div>
+            </div>
+          `;
+        } else {
+          modalBody.innerHTML = `<div class="alert alert-danger">Failed to load donation details.</div>`;
+        }
+      });
     });
   });
-
-  function viewDetails(donationId) {
-    // Your original function remains the same
-    alert("View details feature coming soon! Donation ID: " + donationId);
-  }
 </script>
+
+<!-- Donation Details Modal -->
+<div class="modal fade" id="donationModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content shadow-lg border-0 rounded-4">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">Donation Details</h5>
+        <button
+          type="button"
+          class="btn-close"
+          data-bs-dismiss="modal"
+          aria-label="Close"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-content-body" class="text-center py-5">
+          <div class="spinner-border text-success" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          data-bs-dismiss="modal"
+        >
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
