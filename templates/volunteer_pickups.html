@@ -1,136 +1,193 @@
 {% extends "base.html" %} {% block title %}Volunteer Pickups - Goodness Grid{%
 endblock %} {% block content %}
 <div class="container my-5">
-  <h1 class="mb-4">🚚 Volunteer Pickup Management</h1>
+  <!-- PAGE HEADER: Consistent with other pages -->
+  <div
+    class="page-header p-4 rounded-4 shadow-sm mb-5 text-white d-flex justify-content-between align-items-center"
+    style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+  >
+    <div>
+      <h1 class="fw-bold mb-1">🚚 Volunteer Pickups</h1>
+      <p class="mb-0 opacity-75">View, accept, and complete pickup tasks</p>
+    </div>
+    <a
+      href="/dashboard"
+      class="btn btn-light fw-semibold px-4 py-2 shadow-sm rounded-pill"
+    >
+      ← Back to Dashboard
+    </a>
+  </div>
 
   <!-- MY ACTIVE TASKS -->
-  <div class="card mb-4">
-    <div class="card-header bg-warning text-white">
-      <h4 class="mb-0">My Active Tasks ({{ my_assignments|length }})</h4>
-    </div>
-    <div class="card-body">
-      {% if my_assignments %}
-      <div class="row g-3">
-        {% for task in my_assignments %} {% if task.status == 'in_progress' %}
-        <div class="col-md-6">
-          <div class="card border-warning">
-            <div class="card-body">
-              <h5>
-                {% if task.type == 'food' %}🍽️ {% elif task.type == 'clothes'
-                %}👕 {% elif task.type == 'books' %}📚 {% elif task.type ==
-                'medicine' %}💊 {% else %}📦{% endif %} {{ task.type|capitalize
-                }}
-              </h5>
-              <p><strong>{{ task.description }}</strong></p>
-              <p><strong>Quantity:</strong> {{ task.quantity }}</p>
+  <section class="mb-5">
+    <h4 class="mb-3 fw-semibold text-warning">
+      My Active Tasks ({{ my_active|length }})
+    </h4>
+    <div class="row g-4">
+      {% if my_active %} {% for task in my_active %}
+      <div class="col-md-6">
+        <!-- Using the standard .donation-card -->
+        <div class="card donation-card h-100 shadow-sm border-0 rounded-4">
+          <!-- Standard Green Header -->
+          <div
+            class="card-header text-white rounded-top-4"
+            style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+          >
+            <h5 class="mb-0 fw-bold">
+              {% if task.type == 'food' %}🍽️ {% elif task.type == 'clothes' %}👕
+              {% elif task.type == 'books' %}📚 {% elif task.type == 'medicine'
+              %}💊 {% else %}📦{% endif %} {{ task.type|capitalize }}
+            </h5>
+          </div>
 
-              <hr />
+          <div class="card-body">
+            <p class="fw-semibold fs-6">{{ task.description }}</p>
+            <p class="text-muted small mb-3">
+              <strong>Quantity:</strong> {{ task.quantity }}
+            </p>
 
-              <h6>📍 Pickup From:</h6>
-              <p class="mb-1"><strong>{{ task.donor_name }}</strong></p>
-              <p class="mb-1">📞 {{ task.donor_phone }}</p>
-              <p>📍 {{ task.pickup_address }}</p>
-
-              <hr />
-
-              <h6>🏥 Deliver To:</h6>
-              <p class="mb-1"><strong>{{ task.ngo_name }}</strong></p>
-              <p>📞 {{ task.ngo_phone }}</p>
-
-              <form
-                action="/complete-delivery/{{ task.transaction_id }}"
-                method="POST"
-                class="mt-3"
-              >
-                <button type="submit" class="btn btn-success w-100">
-                  ✅ Mark as Delivered
-                </button>
-              </form>
+            <!-- 2-Column Layout for Pickup/Delivery -->
+            <div class="row g-3">
+              <div class="col-6">
+                <h6 class="fw-bold small text-uppercase">📍 Pickup From:</h6>
+                <p class="mb-1 small">
+                  <strong>{{ task.donor_name }}</strong>
+                </p>
+                <p class="mb-1 small">📞 {{ task.donor_phone }}</p>
+                <p class="mb-0 small">📍 {{ task.pickup_address }}</p>
+              </div>
+              <div class="col-6">
+                <h6 class="fw-bold small text-uppercase">🏥 Deliver To:</h6>
+                <p class="mb-1 small">
+                  <strong>{{ task.ngo_name }}</strong>
+                </p>
+                <p class="mb-1 small">📞 {{ task.ngo_phone }}</p>
+              </div>
             </div>
           </div>
+
+          <!-- Footer for Action Button -->
+          <div class="card-footer bg-light rounded-bottom-4 p-3">
+            <form
+              action="/complete-delivery/{{ task.transaction_id }}"
+              method="POST"
+            >
+              <button
+                type="submit"
+                class="btn btn-success rounded-pill py-2 w-100"
+              >
+                ✅ Mark as Delivered
+              </button>
+            </form>
+          </div>
         </div>
-        {% endif %} {% endfor %}
       </div>
-      {% else %}
-      <p class="text-center text-muted">
-        No active tasks yet. Accept a pickup from below!
-      </p>
+      {% endfor %} {% else %}
+      <!-- Standard Empty State -->
+      <div class="col-12">
+        <div class="empty-state">
+          <div class="empty-state-icon">📋</div>
+          <h4>No Active Tasks</h4>
+          <p>
+            You have no active tasks. Accept a task from the "Available Pickups"
+            section below!
+          </p>
+        </div>
+      </div>
       {% endif %}
     </div>
-  </div>
+  </section>
 
   <!-- AVAILABLE PICKUPS -->
-  <div class="card">
-    <div class="card-header bg-success text-white">
-      <h4 class="mb-0">Available Pickups ({{ pending_pickups|length }})</h4>
-    </div>
-    <div class="card-body">
-      {% if pending_pickups %}
-      <div class="row g-3">
-        {% for pickup in pending_pickups %}
-        <div class="col-md-6">
-          <div class="card border-success">
-            <div class="card-body">
-              <h5>
-                {% if pickup.type == 'food' %}🍽️ {% elif pickup.type ==
-                'clothes' %}👕 {% elif pickup.type == 'books' %}📚 {% elif
-                pickup.type == 'medicine' %}💊 {% else %}📦{% endif %} {{
-                pickup.type|capitalize }}
-              </h5>
-              <p><strong>{{ pickup.description }}</strong></p>
-              <p><strong>Quantity:</strong> {{ pickup.quantity }}</p>
+  <section class="mb-5">
+    <h4 class="mb-3 fw-semibold text-success">
+      Available Pickups ({{ pending_pickups|length }})
+    </h4>
+    <div class="row g-4">
+      {% if pending_pickups %} {% for pickup in pending_pickups %}
+      <div class="col-md-6">
+        <!-- Using the standard .donation-card -->
+        <div class="card donation-card h-100 shadow-sm border-0 rounded-4">
+          <!-- Standard Green Header -->
+          <div
+            class="card-header text-white rounded-top-4"
+            style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+          >
+            <h5 class="mb-0 fw-bold">
+              {% if pickup.type == 'food' %}🍽️ {% elif pickup.type == 'clothes'
+              %}👕 {% elif pickup.type == 'books' %}📚 {% elif pickup.type ==
+              'medicine' %}💊 {% else %}📦{% endif %} {{ pickup.type|capitalize
+              }}
+            </h5>
+          </div>
 
-              <hr />
+          <div class="card-body">
+            <p class="fw-semibold fs-6">{{ pickup.description }}</p>
+            <p class="text-muted small mb-3">
+              <strong>Quantity:</strong> {{ pickup.quantity }}
+            </p>
 
-              <h6>📍 Pickup From:</h6>
-              <p class="mb-1"><strong>{{ pickup.donor_name }}</strong></p>
-              <p class="mb-1">📞 {{ pickup.donor_phone }}</p>
-              <p>📍 {{ pickup.pickup_address }}</p>
-
-              <hr />
-
-              <h6>🏥 Deliver To:</h6>
-              <p class="mb-1"><strong>{{ pickup.ngo_name }}</strong></p>
-              <p>📞 {{ pickup.ngo_phone }}</p>
-
-              <p class="text-muted">
-                <small
-                  >Posted: {{ pickup.created_at.strftime('%b %d, %Y') }}</small
-                >
-              </p>
-
-              <form
-                action="/accept-pickup/{{ pickup.transaction_id }}"
-                method="POST"
-                class="mt-3"
-              >
-                <button type="submit" class="btn btn-success w-100">
-                  🚚 Accept This Pickup
-                </button>
-              </form>
+            <!-- 2-Column Layout for Pickup/Delivery -->
+            <div class="row g-3">
+              <div class="col-6">
+                <h6 class="fw-bold small text-uppercase">📍 Pickup From:</h6>
+                <p class="mb-1 small">
+                  <strong>{{ pickup.donor_name }}</strong>
+                </p>
+                <p class="mb-1 small">📞 {{ pickup.donor_phone }}</p>
+                <p class="mb-0 small">📍 {{ pickup.pickup_address }}</p>
+              </div>
+              <div class="col-6">
+                <h6 class="fw-bold small text-uppercase">🏥 Deliver To:</h6>
+                <p class="mb-1 small">
+                  <strong>{{ pickup.ngo_name }}</strong>
+                </p>
+                <p class="mb-1 small">📞 {{ pickup.ngo_phone }}</p>
+              </div>
             </div>
           </div>
+
+          <!-- Footer for Action Button -->
+          <div class="card-footer bg-light rounded-bottom-4 p-3">
+            <form
+              action="/accept-pickup/{{ pickup.transaction_id }}"
+              method="POST"
+            >
+              <button
+                type="submit"
+                class="btn btn-success rounded-pill py-2 w-100"
+              >
+                🚚 Accept This Pickup
+              </button>
+            </form>
+          </div>
         </div>
-        {% endfor %}
       </div>
-      {% else %}
-      <p class="text-center text-muted">
-        No pickups available right now. Check back later!
-      </p>
+      {% endfor %} {% else %}
+      <!-- Standard Empty State -->
+      <div class="col-12">
+        <div class="empty-state">
+          <div class="empty-state-icon">📦</div>
+          <h4>No Pickups Available</h4>
+          <p>
+            There are no pickups available right now. Great job, or check back
+            soon!
+          </p>
+        </div>
+      </div>
       {% endif %}
     </div>
-  </div>
+  </section>
 
   <!-- COMPLETED DELIVERIES -->
-  <div class="card mt-4">
-    <div class="card-header bg-info text-white">
-      <h4 class="mb-0">My Completed Deliveries</h4>
-    </div>
-    <div class="card-body">
-      {% set completed = my_assignments|selectattr('status', 'equalto',
-      'completed')|list %} {% if completed %}
+  <section>
+    <h4 class="mb-3 fw-semibold text-secondary">My Completed Deliveries</h4>
+    <!-- Wrapped table in a standard card -->
+    <div class="card shadow-sm rounded-4 border-0 overflow-hidden">
+      {% if my_completed %}
       <div class="table-responsive">
-        <table class="table">
+        <!-- Your style.css will automatically style this table's header -->
+        <table class="table mb-0">
           <thead>
             <tr>
               <th>Type</th>
@@ -141,10 +198,10 @@ endblock %} {% block content %}
             </tr>
           </thead>
           <tbody>
-            {% for task in completed %}
+            {% for task in my_completed %}
             <tr>
               <td>{{ task.type|capitalize }}</td>
-              <td>{{ task.description[:50] }}</td>
+              <td>{{ task.description[:50] }}...</td>
               <td>{{ task.donor_name }}</td>
               <td>{{ task.ngo_name }}</td>
               <td>
@@ -157,9 +214,16 @@ endblock %} {% block content %}
         </table>
       </div>
       {% else %}
-      <p class="text-center text-muted">No completed deliveries yet</p>
+      <!-- Standard Empty State (inside card-body) -->
+      <div class="card-body">
+        <div class="empty-state m-0 border-0 shadow-none p-3">
+          <div class="empty-state-icon">✅</div>
+          <h4>No Completed Deliveries</h4>
+          <p class="mb-0">Your completed delivery history will appear here.</p>
+        </div>
+      </div>
       {% endif %}
     </div>
-  </div>
+  </section>
 </div>
 {% endblock %}

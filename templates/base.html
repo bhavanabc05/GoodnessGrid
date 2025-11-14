@@ -21,7 +21,11 @@
   <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-success">
       <div class="container">
-        <a class="navbar-brand" href="/"><strong>🌟 Goodness Grid</strong></a>
+        <!-- <a class="navbar-brand" href="/"><strong>🌟 Goodness Grid</strong></a> -->
+        <a class="navbar-brand" href="/">
+          <i class="bi bi-stars"></i> <strong>Goodness Grid</strong>
+        </a>
+
         <button
           class="navbar-toggler"
           type="button"
@@ -36,10 +40,9 @@
             <li class="nav-item">
               <a class="nav-link" href="/about">About</a>
             </li>
-
             {% if session.get('email') %}
             <li class="nav-item">
-              <a class="nav-link" href="/donations">Browse Donations</a>
+              <a class="nav-link" href="/donations">Browse</a>
             </li>
             {% if session.get('role') == 'donor' %}
             <li class="nav-item">
@@ -63,7 +66,6 @@
                 >Welcome, {{ session.get('fullname') }}</span
               >
             </li>
-
             {% else %}
             <li class="nav-item">
               <a class="nav-link" href="/register">Register</a>
@@ -76,7 +78,6 @@
         </div>
       </div>
     </nav>
-
     <main>
       <!-- Flash Messages -->
       {% with messages = get_flashed_messages(with_categories=true) %} {% if
@@ -98,14 +99,35 @@
       </div>
       {% endif %} {% endwith %} {% block content %} {% endblock %}
     </main>
-
     <footer class="bg-dark text-white text-center py-4 mt-5">
       <div class="container">
-        <p>&copy; 2025 Goodness Grid - A Network of Good Deeds</p>
-        <p>Made with ❤️ by Team Goodness Grid</p>
+        <div>
+          <a href="https://twitter.com/" class="text-white me-3"
+            ><i class="bi bi-twitter"></i
+          ></a>
+          <a href="mailto:bhavanabc05@gmail.com" class="text-white me-3"
+            ><i class="bi bi-envelope-fill"></i
+          ></a>
+          <a
+            href="https://github.com/bhavanabc05/goodnessgrid"
+            class="text-white"
+            target="_blank"
+            ><i class="bi bi-github"></i
+          ></a>
+        </div>
+        <p class="mt-2 mb-0">
+          &copy; 2025 Goodness Grid - A Network of Good Deeds
+        </p>
+        <p>
+          Made with <span style="color: #ff8080">&#10084;</span> by Team
+          Goodness Grid
+        </p>
       </div>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Enable Bootstrap Tooltips for badges var tooltipTriggerList = [].slice.call( document.querySelectorAll('[data-bs-toggle="tooltip"]') ); var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { return new bootstrap.Tooltip(tooltipTriggerEl); });
+    </script>
   </body>
 </html>

@@ -2,100 +2,119 @@
 {% block content %}
 <div class="container my-5">
   <div class="row justify-content-center">
-    <div class="col-md-5">
-      <div class="card shadow-lg">
-        <div class="card-body p-5">
-          <h2 class="text-center mb-4">Welcome Back!</h2>
-          <p class="text-center text-muted mb-4">
-            Login to continue your good deeds
-          </p>
-
-          <!-- Error/Success Messages -->
-          {% if error %}
+    <div class="col-lg-10">
+      <div class="card shadow-sm rounded-4 border-0 overflow-hidden">
+        <div class="row g-0">
           <div
-            class="alert alert-danger alert-dismissible fade show"
-            role="alert"
+            class="col-md-6 d-none d-md-block text-white p-5"
+            style="background: linear-gradient(135deg, #27ae60, #1e8449)"
           >
-            {{ error }}
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-            ></button>
+            <h3 class="fw-bold mb-4">Welcome Back!</h3>
+            <p>
+              Your community is waiting. Log in to continue connecting, sharing,
+              and making a difference.
+            </p>
+            <div class="text-center mt-5 pt-5">
+              <i
+                class="bi bi-box-seam-fill"
+                style="font-size: 10rem; opacity: 0.1"
+              ></i>
+            </div>
           </div>
-          {% endif %} {% if success %}
-          <div
-            class="alert alert-success alert-dismissible fade show"
-            role="alert"
-          >
-            {{ success }}
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="alert"
-            ></button>
+
+          <div class="col-md-6">
+            <div class="card-body p-5">
+              <h2 class="text-center fw-bold text-success mb-4">Login</h2>
+              <p class="text-center text-muted mb-4" style="font-size: 0.9rem">
+                Login to continue your good deeds
+              </p>
+
+              {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %} {% for category, message in messages %}
+              <div
+                class="alert alert-{{ category }} alert-dismissible fade show"
+                role="alert"
+              >
+                {{ message }}
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="alert"
+                ></button>
+              </div>
+              {% endfor %} {% endif %} {% endwith %} {% if unverified_email %}
+              <div
+                class="alert alert-warning alert-dismissible fade show"
+                role="alert"
+              >
+                Please verify your email. Didn't receive the link?
+                <a
+                  href="/resend-verification?email={{ unverified_email }}"
+                  class="alert-link"
+                  >Resend email</a
+                >
+                <button
+                  type="button"
+                  class="btn-close"
+                  data-bs-dismiss="alert"
+                ></button>
+              </div>
+              {% endif %}
+
+              <form action="/login" method="POST">
+                <div class="mb-3">
+                  <label for="email" class="form-label">Email Address</label>
+                  <input
+                    type="email"
+                    class="form-control"
+                    id="email"
+                    name="email"
+                    placeholder="your.email@example.com"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3">
+                  <label for="password" class="form-label">Password</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                  />
+                </div>
+
+                <div class="mb-3 form-check">
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    id="remember"
+                  />
+                  <label class="form-check-label" for="remember">
+                    Remember me
+                  </label>
+                </div>
+
+                <div class="d-grid">
+                  <button
+                    type="submit"
+                    class="btn btn-success btn-lg w-100 rounded-pill"
+                  >
+                    Login
+                  </button>
+                </div>
+              </form>
+
+              <p class="text-center mt-4 mb-0">
+                Don't have an account?
+                <a href="/register" class="text-success fw-bold"
+                  >Register here</a
+                >
+              </p>
+            </div>
           </div>
-          {% endif %} {% if unverified_email %}
-          <div class="alert alert-warning">
-            <p class="mb-2">Didn't receive the verification email?</p>
-            <a
-              href="/resend-verification?email={{ unverified_email }}"
-              class="btn btn-sm btn-warning"
-            >
-              Resend Verification Email
-            </a>
-          </div>
-          {% endif %}
-
-          <!-- Login Form -->
-          <form action="/login" method="POST">
-            <!-- Email Field -->
-            <div class="mb-3">
-              <label for="email" class="form-label">Email Address</label>
-              <input
-                type="email"
-                class="form-control"
-                id="email"
-                name="email"
-                placeholder="your.email@example.com"
-                required
-              />
-            </div>
-
-            <!-- Password Field -->
-            <div class="mb-3">
-              <label for="password" class="form-label">Password</label>
-              <input
-                type="password"
-                class="form-control"
-                id="password"
-                name="password"
-                placeholder="Enter your password"
-                required
-              />
-            </div>
-
-            <!-- Remember Me Checkbox -->
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" id="remember" />
-              <label class="form-check-label" for="remember">
-                Remember me
-              </label>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="d-grid">
-              <button type="submit" class="btn btn-success btn-lg">
-                Login
-              </button>
-            </div>
-          </form>
-
-          <!-- Link to Register -->
-          <p class="text-center mt-4 mb-0">
-            Don't have an account?
-            <a href="/register" class="text-success fw-bold">Register here</a>
-          </p>
         </div>
       </div>
     </div>

@@ -11,15 +11,16 @@ from config import DB_CONFIG
 
 def get_db_connection():
     """
-    Create and return a database connection
-    This is like opening a door to your database
+    Create and return a database connection safely.
+    Always ensures a fresh connection.
     """
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         if connection.is_connected():
+            connection.ping(reconnect=True, attempts=3, delay=2)  # ✅ ensures connection alive
             return connection
     except Error as e:
-        print(f"Error connecting to MySQL: {e}")
+        print(f"❌ Error connecting to MySQL: {e}")
         return None
 
 
@@ -399,25 +400,54 @@ def get_claimed_donations_by_ngo(ngo_id):
 
     try:
         cursor = connection.cursor(dictionary=True)
+
         query = """
-        SELECT d.*, 
-               (SELECT COUNT(*) FROM Feedback f 
-                WHERE f.donation_id = d.donation_id 
-                  AND f.receiver_id = %s) AS has_feedback
+        SELECT 
+            d.donation_id,
+            d.type,
+            d.description,
+            d.quantity,
+            d.pickup_address,
+            d.status,
+            d.created_at,
+
+            u1.name AS donor_name,
+            u1.phone AS donor_phone,
+
+            u2.name AS ngo_name,
+            u2.phone AS ngo_phone,
+
+            t.status AS transaction_status,
+            t.transaction_id,
+
+            -- NEW: Feedback Check
+            (SELECT COUNT(*) FROM Feedback f 
+             WHERE f.donation_id = d.donation_id 
+               AND f.receiver_id = %s) AS has_feedback
+
         FROM Donations d
         JOIN Transactions t ON d.donation_id = t.donation_id
+        JOIN Users u1 ON d.donor_id = u1.user_id
+        JOIN Users u2 ON t.ngo_id = u2.user_id
+
         WHERE t.ngo_id = %s
+        ORDER BY d.created_at DESC
         """
+
         cursor.execute(query, (ngo_id, ngo_id))
-        donations = cursor.fetchall()
+        rows = cursor.fetchall()
+
         cursor.close()
         connection.close()
-        return donations
+        return rows
+
     except Error as e:
         print(f"❌ Error fetching claimed donations: {e}")
         if connection:
             connection.close()
         return []
+
+
 
     
 def get_pending_pickups():
@@ -1379,6 +1409,99 @@ def get_average_rating_for_donor(donor_id):
             connection.close()
         return 0
 
+def enable_self_pickup_for_expired_transactions():
+    connection = get_db_connection()
+    if not connection:
+        return
+    
+    try:
+        cursor = connection.cursor()
+        
+        query = """
+        UPDATE Transactions
+        SET self_pickup_allowed = TRUE
+        WHERE status = 'pending'
+          AND volunteer_id IS NULL
+          AND TIMESTAMPDIFF(HOUR, created_at, NOW()) >= 24
+        """
+        
+        cursor.execute(query)
+        connection.commit()
+        cursor.close()
+        connection.close()
+        
+        print("✅ Self-pickup enabled for delayed transactions.")
+    
+    except Error as e:
+        print(f"Error enabling self-pickup: {e}")
+        if connection:
+            connection.close()
+
+def enable_self_pickup_if_overdue():
+    connection = get_db_connection()
+    if not connection:
+        return
+
+    try:
+        cursor = connection.cursor()
+        cursor.execute("""
+            UPDATE Transactions
+            SET self_pickup_allowed = 1
+            WHERE status='pending'
+              AND TIMESTAMPDIFF(HOUR, created_at, NOW()) >= 24
+              AND self_pickup_allowed = 0
+        """)
+        connection.commit()
+        cursor.close()
+        connection.close()
+    except Error as e:
+        print(f"❌ Error auto-enabling self pickup: {e}")
+
+def get_matching_donations(ngo_type, limit=6):
+    """
+    Get available donations that match the NGO's type.
+    If no matches, fall back to most recent.
+    """
+    connection = get_db_connection()
+    if not connection:
+        return []
+
+    try:
+        cursor = connection.cursor(dictionary=True)
+        
+        # Query 1: Try to find donations matching the NGO's type
+        query_match = """
+            SELECT d.*, u.name AS donor_name
+            FROM Donations d
+            JOIN Users u ON d.donor_id = u.user_id
+            WHERE d.status = 'available' AND d.type = %s
+            ORDER BY d.created_at DESC
+            LIMIT %s
+        """
+        cursor.execute(query_match, (ngo_type, limit))
+        donations = cursor.fetchall()
+
+        # Query 2: If no matches, get the most recent available
+        if not donations:
+            query_recent = """
+                SELECT d.*, u.name AS donor_name
+                FROM Donations d
+                JOIN Users u ON d.donor_id = u.user_id
+                WHERE d.status = 'available'
+                ORDER BY d.created_at DESC
+                LIMIT %s
+            """
+            cursor.execute(query_recent, (limit,))
+            donations = cursor.fetchall()
+
+        cursor.close()
+        connection.close()
+        return donations
+    except Error as e:
+        print(f"Error fetching matching donations: {e}")
+        if connection:
+            connection.close()
+        return []
 
 # Test the connection when this file is run directly
 if __name__ == "__main__":

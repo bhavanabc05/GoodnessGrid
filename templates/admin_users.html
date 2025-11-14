@@ -1,113 +1,144 @@
 {% extends "base.html" %} {% block title %}User Management - Admin{% endblock %}
 {% block content %}
 <div class="container my-5">
-  <h1 class="mb-4">👥 User Management</h1>
-  <div>
-    <a href="/admin/export/users" class="btn btn-success me-2">
-      📥 Export to CSV
-    </a>
-    <a href="/dashboard" class="btn btn-outline-success">Back to Dashboard</a>
-  </div>
-  <div class="card">
-    <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead class="table-success">
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Role</th>
-              <th>Verified</th>
-              <th>Joined</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for user in users %}
-            <tr>
-              <td>{{ user.user_id }}</td>
-              <td>{{ user.name }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.phone }}</td>
-              <td>
-                <span
-                  class="badge {% if user.role == 'admin' %}bg-danger {% elif user.role == 'donor' %}bg-success {% elif user.role == 'receiver' or user.role == 'ngo' %}bg-primary {% elif user.role == 'volunteer' %}bg-warning {% endif %}"
-                >
-                  {{ user.role|upper }}
-                </span>
-              </td>
-              <td>
-                {% if user.verified %}
-                <span class="badge bg-success">✓ Verified</span>
-                {% else %}
-                <span class="badge bg-secondary">Not Verified</span>
-                {% endif %}
-              </td>
-              <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
-              <td>
-                {% if (user.role == 'receiver' or user.role == 'ngo') and not
-                user.verified %}
-                <form
-                  action="/admin/verify-ngo/{{ user.user_id }}"
-                  method="POST"
-                  class="d-inline"
-                >
-                  <button type="submit" class="btn btn-sm btn-success">
-                    Verify
-                  </button>
-                </form>
-                {% endif %}
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+  <div
+    class="page-header p-4 rounded-4 shadow-sm mb-5 text-white d-flex justify-content-between align-items-center"
+    style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+  >
+    <div>
+      <h1 class="fw-bold mb-1">👥 User Management</h1>
+      <p class="mb-0 opacity-75">View, verify, and manage all users</p>
+    </div>
+    <div>
+      <a
+        href="/admin/export/users"
+        class="btn btn-light fw-semibold px-4 py-2 shadow-sm rounded-pill me-2"
+      >
+        📥 Export to CSV
+      </a>
+      <a
+        href="/dashboard"
+        class="btn btn-outline-light fw-semibold px-4 py-2 rounded-pill"
+        >← Dashboard</a
+      >
     </div>
   </div>
 
-  <div class="row mt-4">
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h3>{{ users|length }}</h3>
-          <p class="text-muted mb-0">Total Users</p>
+  <section class="mb-4">
+    <div class="row g-4">
+      <div class="col-md-3 col-sm-6">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h2 class="text-success fw-bold">{{ users|length }}</h2>
+            <p class="text-muted mb-0">Total Users</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h2 class="text-primary fw-bold">
+              {{ users|selectattr('role', 'equalto', 'donor')|list|length }}
+            </h2>
+            <p class="text-muted mb-0">Donors</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h2 class="text-info fw-bold">
+              {{ users|selectattr('role', 'in', ['receiver', 'ngo'])|list|length
+              }}
+            </h2>
+            <p class="text-muted mb-0">NGOs</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3 col-sm-6">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h2 class="text-warning fw-bold">
+              {{ users|selectattr('role', 'equalto', 'volunteer')|list|length }}
+            </h2>
+            <p class="text-muted mb-0">Volunteers</p>
+          </div>
         </div>
       </div>
     </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h3>
-            {{ users|selectattr('role', 'equalto', 'donor')|list|length }}
-          </h3>
-          <p class="text-muted mb-0">Donors</p>
-        </div>
-      </div>
+  </section>
+
+  <div class="card shadow-sm rounded-4 border-0 overflow-hidden">
+    {% if users %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Role</th>
+            <th>Verified</th>
+            <th>Joined</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.user_id }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.phone }}</td>
+            <td>
+              <span
+                class="badge rounded-pill px-3 py-2 {% if user.role == 'admin' %}bg-danger {% elif user.role == 'donor' %}bg-success {% elif user.role == 'receiver' or user.role == 'ngo' %}bg-primary {% elif user.role == 'volunteer' %}bg-warning text-dark{% endif %}"
+              >
+                {{ user.role|capitalize }}
+              </span>
+            </td>
+            <td>
+              {% if user.verified %}
+              <span class="badge rounded-pill bg-success px-3 py-2"
+                >✓ Verified</span
+              >
+              {% else %}
+              <span class="badge rounded-pill bg-secondary px-3 py-2"
+                >Not Verified</span
+              >
+              {% endif %}
+            </td>
+            <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+            <td>
+              {% if (user.role == 'receiver' or user.role == 'ngo') and not
+              user.verified %}
+              <form
+                action="/admin/verify-ngo/{{ user.user_id }}"
+                method="POST"
+                class="d-inline"
+              >
+                <button
+                  type="submit"
+                  class="btn btn-sm btn-success rounded-pill"
+                >
+                  Verify
+                </button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h3>
-            {{ users|selectattr('role', 'in', ['receiver', 'ngo'])|list|length
-            }}
-          </h3>
-          <p class="text-muted mb-0">NGOs</p>
-        </div>
-      </div>
+    {% else %}
+    <div class="empty-state m-0 border-0 shadow-none p-5">
+      <div class="empty-state-icon">👥</div>
+      <h4>No Users Found</h4>
+      <p class="mb-0">No users have registered on the platform yet.</p>
     </div>
-    <div class="col-md-3">
-      <div class="card text-center">
-        <div class="card-body">
-          <h3>
-            {{ users|selectattr('role', 'equalto', 'volunteer')|list|length }}
-          </h3>
-          <p class="text-muted mb-0">Volunteers</p>
-        </div>
-      </div>
-    </div>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

@@ -1,23 +1,82 @@
 {% extends "base.html" %} {% block title %}Dashboard - Goodness Grid{% endblock
-%} {% block content %}
+%} 
 
-<div class="container py-5">
-  <!-- ===== Welcome Section ===== -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="alert alert-success shadow-sm rounded-3">
-        <h3 class="fw-bold mb-1">👋 Welcome back, {{ session.fullname }}!</h3>
-        <p class="mb-0">
-          You are logged in as <strong>{{ session.role|upper }}</strong>.
+<style>
+  .about-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+  }
+</style>
+
+{% block content %}
+
+<div class="container my-5">
+  <div
+    class="page-header p-4 rounded-4 shadow-sm mb-5 text-white d-flex justify-content-between align-items-center"
+    style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+  >
+    <div>
+      <h1 class="fw-bold mb-1">👋 Welcome back, {{ session.fullname }}!</h1>
+      <p class="mb-0 opacity-75">
+        You are logged in as <strong>{{ session.role|upper }}</strong>.
+      </p>
+    </div>
+
+    {% if session.role == 'donor' and streak > 0 %}
+    <div class="text-center px-3 my-2 my-md-0">
+      <div class="display-4">🔥</div>
+      <h5 class="fw-semibold mb-0">{{ streak }}-Month Streak!</h5>
+      <small class="text-white fw-semibold">Keep it going!</small>
+    </div>
+    {% endif %}
+  </div>
+  {% if session.role == 'donor' %}
+  <section class="mb-4">
+    <div class="card shadow-sm border-0 rounded-4">
+      <div class="card-body p-4">
+        <div
+          class="d-flex justify-content-between align-items-center mb-2 flex-wrap"
+        >
+          <h5 class="fw-semibold mb-0">
+            Your Rank:
+            <span class="text-success">{{ donor_level.level_name }}</span>
+          </h5>
+          <span class="badge bg-success rounded-pill fs-6 px-3 py-2"
+            >{{ my_donations_count }} Total Donations</span
+          >
+        </div>
+
+        {% if donor_level.next_level_name %}
+        <p class="small text-muted mb-2">
+          You are
+          <strong>{{ donor_level.donations_to_next }} donations away</strong>
+          from becoming a
+          <i>{{ donor_level.next_level_name }}</I
+          >!
         </p>
+        <div class="progress" style="height: 10px">
+          <div
+            class="progress-bar bg-success"
+            role="progressbar"
+            style="width: {{ donor_level.progress_percent }}%"
+          ></div>
+        </div>
+        {% else %}
+        <p class="small text-muted mb-2">
+          <strong
+            >You've reached the top rank! Thank you for your incredible
+            generosity.</strong
+          >
+        </p>
+        {% endif %}
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- ===== Role-Specific Dashboards ===== -->
-
-  {% if session.role == 'donor' %}
-  <!-- === DONOR DASHBOARD === -->
   <section class="mb-5">
     <h4 class="mb-3 fw-semibold text-success">Your Donation Overview</h4>
     <div class="row g-4">
@@ -27,7 +86,7 @@
       count, color in stats %}
       <div class="col-md-3 col-sm-6">
         <div class="card text-center border-0 shadow-sm rounded-4">
-          <div class="card-body">
+          <div class="card-body p-4">
             <h2 class="text-{{ color }} fw-bold">{{ count }}</h2>
             <p class="text-muted mb-0">{{ label }}</p>
           </div>
@@ -37,92 +96,156 @@
     </div>
   </section>
 
-  <!-- Quick Actions -->
-  <section>
+  <section class="mb-5">
     <h4 class="mb-3 fw-semibold text-secondary">Quick Actions</h4>
     <div class="row g-4">
       <div class="col-md-4">
-        <div
-          class="card h-100 shadow-sm border-0 hover-shadow rounded-4 text-center"
-        >
-          <div class="card-body">
-            <div class="display-3 mb-3">📦</div>
+        <div class="card h-100 shadow-sm border-0 rounded-4 text-center">
+          <div class="card-body p-4 d-flex flex-column">
+            <div
+              class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+            >
+              <i class="bi bi-gift-fill fs-2"></i>
+            </div>
             <h5 class="fw-semibold">Post New Donation</h5>
             <p class="text-muted small">
               Share your surplus items with those in need.
             </p>
-            <a href="/post-donation" class="btn btn-success">Post Donation</a>
+            <a href="/post-donation" class="btn btn-success rounded-pill mt-auto"
+              >Post Donation</a
+            >
           </div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card h-100 shadow-sm border-0 rounded-4 text-center">
-          <div class="card-body">
-            <div class="display-3 mb-3">📋</div>
+          <div class="card-body p-4 d-flex flex-column">
+            <div
+              class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+            >
+              <i class="bi bi-list-check fs-2"></i>
+            </div>
             <h5 class="fw-semibold">My Donations</h5>
             <p class="text-muted small">
               View and manage your posted donations.
             </p>
-            <a href="/my-donations" class="btn btn-primary">View Donations</a>
+            <a href="/my-donations" class="btn btn-outline-success rounded-pill mt-auto"
+              >View Donations</a
+            >
           </div>
         </div>
       </div>
       <div class="col-md-4">
         <div class="card h-100 shadow-sm border-0 rounded-4 text-center">
-          <div class="card-body">
-            <div class="display-3 mb-3">🔍</div>
+          <div class="card-body p-4 d-flex flex-column">
+            <div
+              class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+            >
+              <i class="bi bi-search fs-2"></i>
+            </div>
             <h5 class="fw-semibold">Browse All</h5>
             <p class="text-muted small">See what others are donating.</p>
-            <a href="/donations" class="btn btn-danger">Browse</a>
+            <a href="/donations" class="btn btn-outline-success rounded-pill mt-auto"
+              >Browse</a
+            >
           </div>
         </div>
       </div>
     </div>
-    <div class="alert alert-info">
-      <strong>Your Average Rating:</strong>
-      {% if avg_rating > 0 %}
-      <span class="text-warning">
-        {% set rounded_rating = avg_rating|int %} {% for i in
-        range(rounded_rating) %}★{% endfor %} {% for i in range(5 -
-        rounded_rating) %}☆{% endfor %} ({{ "%.1f"|format(avg_rating) }}/5)
-      </span>
-      {% else %}
-      <span class="text-muted">No ratings yet</span>
+    </section>
+
+  <section class="mb-5">
+    <h4 class="mb-3 fw-semibold text-secondary">🏆 Your Achievements</h4>
+    <div class="row g-3">
+      {% if badges and badges|length > 0 %} {% for badge in badges %}
+      <div class="col-md-3 col-sm-6">
+        <div
+          class="card h-100 text-center shadow-sm border-0 rounded-4"
+          data-bs-toggle="tooltip"
+          data-bs-placement="top"
+          title="{{ badge.description }}"
+        >
+          <div class="card-body">
+            <div class="display-4 mb-2">{{ badge.icon }}</div>
+            <h6 class="fw-semibold mb-0">{{ badge.name }}</h6>
+          </div>
+        </div>
+      </div>
+      {% endfor %} {% else %}
+      <div class="col-12">
+        <div class="empty-state p-4">
+          <div class="empty-state-icon">🏆</div>
+          <h5 class="text-success">Start Earning Badges</h5>
+          <p class="mb-0">
+            Make your first donation or receive feedback to start!
+          </p>
+        </div>
+      </div>
       {% endif %}
     </div>
   </section>
-  <!-- Feedback Section --><!-- Donor Feedback Section -->
-  {% if feedback_list and feedback_list|length > 0 %}
-  <section class="mt-4">
+
+  <section class="mb-5">
     <h4 class="fw-semibold text-success mb-3">💬 Feedback from Receivers</h4>
     <div class="row g-3">
-      {% for fb in feedback_list %}
-      <div class="col-md-6">
-        <div class="card shadow-sm border-0 rounded-4">
-          <div class="card-body">
-            <h6 class="fw-bold text-primary mb-1">{{ fb.receiver_name }}</h6>
-            <p class="mb-2 text-muted small">
-              <strong>Donation:</strong> {{ fb.donation_description }}
-            </p>
-            <div class="text-warning mb-2">
-              {% for i in range(fb.rating) %}★{% endfor %} {% for i in range(5 -
-              fb.rating) %}☆{% endfor %}
+      {% if feedback_list and feedback_list|length > 0 %} 
+        {% for fb in feedback_list %}
+        <div class="col-md-6">
+          <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body">
+              <h6 class="fw-bold text-primary mb-1">{{ fb.receiver_name }}</h6>
+              <p class="mb-2 text-muted small">
+                <strong>Donation:</strong> {{ fb.donation_description }}
+              </p>
+              <div class="text-warning mb-2">
+                {% for i in range(fb.rating) %}★{% endfor %} {% for i in range(5
+                - fb.rating) %}☆{% endfor %}
+              </div>
+              <p class="mb-0 fst-italic">"{{ fb.comments }}"</p>
+              <p class="text-muted small mt-2 text-end">
+                {{ fb.created_at.strftime('%b %d, %Y') }}
+              </p>
             </div>
-            <p class="mb-0">{{ fb.comments }}</p>
-            <p class="text-muted small mt-2">
-              {{ fb.created_at.strftime('%b %d, %Y') }}
-            </p>
           </div>
         </div>
+        {% endfor %} 
+      {% else %}
+      <div class="col-12">
+        <div class="empty-state p-4">
+          <div class="empty-state-icon">💬</div>
+          <h5 class="text-success">No Feedback Yet</h5>
+          <p class="mb-0">
+            Your feedback from receivers will appear here after your donations
+            are completed.
+          </p>
+        </div>
       </div>
-      {% endfor %}
+      {% endif %}
     </div>
   </section>
-  {% else %}
-  <div class="alert alert-light text-muted mt-3">No feedback received yet.</div>
 
-  {% endif %} {% elif session.role in ['receiver', 'ngo'] %}
-  <!-- === RECEIVER / NGO DASHBOARD === -->
+  {% elif session.role in ['receiver', 'ngo'] %}
+
+  {% if any_claims_self_pickup %}
+  <section class="mb-4">
+    <div
+      class="alert alert-warning border-warning shadow-sm d-flex align-items-center"
+    >
+      <div class="display-5 me-3">⏱️</div>
+      <div>
+        <h4 class="alert-heading fw-bold">Action Required: Pickup Delayed</h4>
+        <p class="mb-2">
+          At least one of your claims has been pending for over 24 hours. You can
+          now choose to pick it up yourself.
+        </p>
+        <a href="/my-claims" class="btn btn-success fw-semibold rounded-pill">
+          View Eligible Claims
+        </a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+
   <section class="mb-5">
     <h4 class="mb-3 fw-semibold text-success">Available Donations Overview</h4>
     <div class="row g-4">
@@ -131,7 +254,7 @@
       completed_count, 'info') ] %} {% for label, count, color in stats %}
       <div class="col-md-4 col-sm-6">
         <div class="card text-center border-0 shadow-sm rounded-4">
-          <div class="card-body">
+          <div class="card-body p-4">
             <h2 class="text-{{ color }} fw-bold">{{ count }}</h2>
             <p class="text-muted mb-0">{{ label }}</p>
           </div>
@@ -141,42 +264,102 @@
     </div>
   </section>
 
-  <!-- Quick Actions -->
   <section>
     <h4 class="mb-3 fw-semibold text-secondary">Quick Actions</h4>
     <div class="row g-4">
-      <div class="col-md-6">
+      <div class="col-md-4">
         <div class="card h-100 shadow-sm border-0 text-center rounded-4">
-          <div class="card-body">
-            <div class="display-3 mb-3">🎁</div>
+          <div class="card-body p-4 d-flex flex-column">
+            <div
+              class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+            >
+              <i class="bi bi-box-seam-fill fs-2"></i>
+            </div>
             <h5 class="fw-semibold">Browse Donations</h5>
             <p class="text-muted small">
               Find donations that match your needs.
             </p>
-            <a href="/donations" class="btn btn-success">Browse Now</a>
+            <a href="/donations" class="btn btn-success rounded-pill mt-auto"
+              >Browse Now</a
+            >
           </div>
         </div>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
         <div class="card h-100 shadow-sm border-0 text-center rounded-4">
-          <div class="card-body">
-            <div class="display-3 mb-3">📊</div>
+          <div class="card-body p-4 d-flex flex-column">
+            <div
+              class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+            >
+              <i class="bi bi-clipboard-data-fill fs-2"></i>
+            </div>
             <h5 class="fw-semibold">My Claims</h5>
             <p class="text-muted small">View donations you’ve claimed.</p>
-            <a href="/my-claims" class="btn btn-success">View My Claims</a>
+            <a href="/my-claims" class="btn btn-success rounded-pill mt-auto"
+              >View My Claims</a
+            >
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0 text-center rounded-4">
+          <div class="card-body p-4 d-flex flex-column">
+            <div
+              class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+            >
+              <i class="bi bi-chat-dots-fill fs-2"></i>
+            </div>
+            <h5 class="fw-semibold">Give Feedback</h5>
+            <p class="text-muted small">Share your experience with donors.</p>
+            <a href="/my-claims" class="btn btn-outline-success rounded-pill mt-auto"
+              >Give Feedback</a
+            >
           </div>
         </div>
       </div>
     </div>
   </section>
-  <!-- === RECENT DONATIONS PREVIEW === -->
+
+  {% if active_claims and active_claims|length > 0 %}
   <section class="mt-5">
-    <h4 class="mb-3 fw-semibold text-secondary">Recent Donations</h4>
+    <h4 class="mb-3 fw-semibold text-secondary">🚚 Your Active Claims</h4>
+    <div class.row g-3">
+      {% for claim in active_claims %}
+      <div class="col-md-12">
+        <div class="card card-body shadow-sm border-0 rounded-4">
+          <div
+            class="d-flex justify-content-between align-items-center flex-wrap"
+          >
+            <div>
+              <h5 class="mb-0 text-success">{{ claim.type|capitalize }}</h5>
+              <p class="mb-0 small text-muted">
+                From: <strong>{{ claim.donor_name }}</strong> | Status:
+                <span
+                  class="badge bg-{% if claim.transaction_status == 'pending' %}warning{% else %}info{% endif %}"
+                  >{{ claim.transaction_status|capitalize }}</span
+                >
+              </p>
+            </div>
+            <a
+              href="/my-claims"
+              class="btn btn-outline-success btn-sm mt-2 mt-md-0 rounded-pill"
+              >View Details</a
+            >
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="mt-5">
+    <h4 class="mb-3 fw-semibold text-secondary">🎁 Matching Your Needs</h4>
     {% if recent_donations and recent_donations|length > 0 %}
     <div class="row g-4">
       {% for donation in recent_donations %}
       <div class="col-md-4 col-sm-6">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
+        <div class="card donation-card h-100 shadow-sm border-0 rounded-4">
           {% if donation.image_path %}
           <img
             src="{{ url_for('static', filename=donation.image_path.split('static/')[-1]) }}"
@@ -185,11 +368,14 @@
             style="height: 200px; object-fit: cover"
           />
           {% else %}
-          <div class="bg-light text-muted text-center py-5 rounded-top-4">
-            <i class="bi bi-box-seam fs-1"></i><br />No Image
+          <div
+            class="bg-light text-muted text-center py-5 rounded-top-4 d-flex align-items-center justify-content-center"
+            style="height: 200px"
+          >
+            <div><i class="bi bi-box-seam-fill fs-1"></i><br />No Image</div>
           </div>
           {% endif %}
-          <div class="card-body">
+          <div class="card-body d-flex flex-column">
             <h5 class="card-title text-success">
               {{ donation.type|capitalize }}
             </h5>
@@ -197,23 +383,30 @@
               {{ donation.description[:70] }}{% if donation.description|length >
               70 %}...{% endif %}
             </p>
-            <a href="/donations" class="btn btn-outline-success btn-sm w-100"
-              >View More</a
+            <a
+              href="/donations"
+              class="btn btn-outline-success btn-sm w-100 rounded-pill mt-auto"
             >
+              View More
+            </a>
           </div>
         </div>
       </div>
       {% endfor %}
     </div>
     {% else %}
-    <div class="alert alert-info text-center">
-      No recent donations available yet.
+    <div class="empty-state p-4">
+      <div class="empty-state-icon">🎁</div>
+      <h5 class="text-success">No Matching Donations</h5>
+      <p class="mb-0">
+        No donations matching your needs are available right now. Check back
+        soon!
+      </p>
     </div>
     {% endif %}
   </section>
 
   {% elif session.role == 'volunteer' %}
-  <!-- === VOLUNTEER DASHBOARD === -->
   <section class="mb-5">
     <h4 class="mb-3 fw-semibold text-success">Volunteer Overview</h4>
     <div class="row g-4">
@@ -222,7 +415,7 @@
       'info') ] %} {% for label, count, color in stats %}
       <div class="col-md-4 col-sm-6">
         <div class="card text-center border-0 shadow-sm rounded-4">
-          <div class="card-body">
+          <div class="card-body p-4">
             <h2 class="text-{{ color }} fw-bold">{{ count }}</h2>
             <p class="text-muted mb-0">{{ label }}</p>
           </div>
@@ -234,19 +427,24 @@
 
   <section>
     <div class="card shadow-sm border-0 text-center rounded-4">
-      <div class="card-body">
-        <div class="display-3 mb-3">🚚</div>
+      <div class="card-body p-4 p-md-5">
+        <div
+          class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+        >
+          <i class="bi bi-truck fs-2"></i>
+        </div>
         <h5 class="fw-semibold">Manage Your Pickups</h5>
         <p class="text-muted small">
           Accept pickup tasks and complete deliveries.
         </p>
-        <a href="/volunteer-pickups" class="btn btn-success">View Pickups</a>
+        <a href="/volunteer-pickups" class="btn btn-success rounded-pill"
+          >View Pickups</a
+        >
       </div>
     </div>
   </section>
 
   {% elif session.role == 'admin' %}
-  <!-- === ADMIN DASHBOARD === -->
   <section class="mb-5">
     <h4 class="mb-3 fw-semibold text-success">Platform Overview</h4>
     <div class="row g-4">
@@ -256,7 +454,7 @@
       + '%', 'info') ] %} {% for label, count, color in stats %}
       <div class="col-md-3 col-sm-6">
         <div class="card text-center border-0 shadow-sm rounded-4">
-          <div class="card-body">
+          <div class="card-body p-4">
             <h2 class="text-{{ color }} fw-bold">{{ count }}</h2>
             <p class="text-muted mb-0">{{ label }}</p>
           </div>
@@ -266,23 +464,31 @@
     </div>
   </section>
 
-  <!-- Quick Actions -->
-  <section>
+  <section class="mb-5">
     <h4 class="mb-3 fw-semibold text-secondary">Admin Controls</h4>
     <div class="row g-4">
-      {% set actions = [ ('👥', 'User Management', 'View and manage all users',
-      '/admin/users', 'success'), ('📦', 'All Donations', 'View all platform
-      donations', '/donations', 'primary'), ('📊', 'Transactions', 'Monitor all
-      transactions', '/admin/transactions', 'outline-success'), ('📈',
-      'Analytics', 'View detailed charts and trends', '/admin/analytics',
-      'success') ] %} {% for icon, title, desc, link, btn in actions %}
+      {% set actions = [ ('<i class="bi bi-people-fill fs-2"></i>', 'User
+      Management', 'View and manage all users', '/admin/users', 'success'),
+      ('<i class="bi bi-box-seam-fill fs-2"></i>', 'All Donations', 'View all
+      platform donations', '/donations', 'outline-success'), ('<i class="bi
+      bi-bar-chart-fill fs-2"></i>', 'Transactions', 'Monitor all
+      transactions', '/admin/transactions', 'outline-success'), ('<i class="bi
+      bi-graph-up-arrow fs-2"></i>', 'Analytics', 'View detailed charts and
+      trends', '/admin/analytics', 'success') ] %} {% for icon, title, desc,
+      link, btn in actions %}
       <div class="col-md-3 col-sm-6">
         <div class="card h-100 text-center border-0 shadow-sm rounded-4">
-          <div class="card-body">
-            <div class="display-3 mb-3">{{ icon }}</div>
+          <div class="card-body p-4 d-flex flex-column">
+            <div
+              class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+            >
+              {{ icon|safe }}
+            </div>
             <h5 class="fw-semibold">{{ title }}</h5>
             <p class="text-muted small">{{ desc }}</p>
-            <a href="{{ link }}" class="btn btn-{{ btn }}">{{ title }}</a>
+            <a href="{{ link }}" class="btn btn-{{ btn }} rounded-pill mt-auto"
+              >{{ title }}</a
+            >
           </div>
         </div>
       </div>
@@ -290,13 +496,10 @@
     </div>
   </section>
 
-  <!-- Reports -->
-  <section class="mt-5">
+  <section>
     <div class="card shadow-sm border-0 rounded-4">
-      <div class="card-header bg-warning text-dark">
-        <h5 class="mb-0 fw-semibold">📄 Export Reports</h5>
-      </div>
-      <div class="card-body">
+      <div class="card-body p-4 p-md-5">
+        <h4 class="mb-3 fw-semibold text-secondary">📄 Export Reports</h4>
         <p class="text-muted small mb-3">
           Download platform data in CSV format for analysis and record-keeping.
         </p>
@@ -308,7 +511,9 @@
           '/admin/export/summary', 'outline-warning') ] %} {% for label, link,
           btn in reports %}
           <div class="col-md-3 col-sm-6">
-            <a href="{{ link }}" class="btn btn-{{ btn }} w-100">{{ label }}</a>
+            <a href="{{ link }}" class="btn btn-{{ btn }} w-100 rounded-pill"
+              >{{ label }}</a
+            >
           </div>
           {% endfor %}
         </div>
@@ -317,25 +522,40 @@
   </section>
   {% endif %}
 
-  <!-- ===== Profile Section ===== -->
   <section class="mt-5">
     <div class="card border-0 shadow-sm rounded-4">
-      <div class="card-header bg-success text-white">
-        <h5 class="mb-0 fw-semibold">Your Profile</h5>
-      </div>
-      <div class="card-body">
+      <div class="card-body p-4 p-md-5">
+        <h4 class="mb-4 fw-semibold text-success">Your Profile</h4>
         <div class="row">
           <div class="col-md-6">
             <p><strong>Name:</strong> {{ session.fullname }}</p>
-            <p><strong>Email:</strong> {{ session.email }}</p>
+            <p class="mb-md-0"><strong>Email:</strong> {{ session.email }}</p>
           </div>
           <div class="col-md-6">
             <p><strong>Role:</strong> {{ session.role|capitalize }}</p>
-            <p><strong>User ID:</strong> {{ session.user_id }}</p>
+            <p class="mb-0"><strong>User ID:</strong> {{ session.user_id }}</p>
           </div>
         </div>
+
+        <hr class="my-4" />
+
+        {% if session.role == 'donor' %}
+        <div class="mb-3">
+          <strong>Your Average Rating:</strong>
+          {% if avg_rating > 0 %}
+          <span class="text-warning">
+            {% set rounded_rating = avg_rating|int %} {% for i in
+            range(rounded_rating) %}★{% endfor %} {% for i in range(5 -
+            rounded_rating) %}☆{% endfor %} ({{ "%.1f"|format(avg_rating) }}/5)
+          </span>
+          {% else %}
+          <span class="text-muted">No ratings yet</span>
+          {% endif %}
+        </div>
+        {% endif %}
+
         <button
-          class="btn btn-outline-primary mt-2"
+          class="btn btn-outline-success rounded-pill"
           onclick="window.location.href='/edit-profile'"
         >
           Edit Profile
@@ -344,5 +564,15 @@
     </div>
   </section>
 </div>
+
+<script>
+  // Enable Bootstrap Tooltips for badges
+  var tooltipTriggerList = [].slice.call(
+    document.querySelectorAll('[data-bs-toggle="tooltip"]')
+  );
+  var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+</script>
 
 {% endblock %}

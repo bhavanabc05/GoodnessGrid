@@ -1,0 +1,55 @@
+{% extends "base.html" %} {% block title %}Database Sync Check - Admin{%
+endblock %} {% block content %}
+<div class="container my-5">
+  <div class="card shadow-sm border-0 rounded-4">
+    <div class="card-header bg-warning text-dark">
+      <h4 class="mb-0">⚠️ Database Consistency Check</h4>
+    </div>
+    <div class="card-body">
+      {% if mismatches and mismatches|length > 0 %}
+      <p class="text-danger fw-semibold mb-3">
+        Found {{ mismatches|length }} mismatched record(s) between
+        <code>Donations</code> and <code>Transactions</code> tables.
+      </p>
+
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>Donation ID</th>
+              <th>Donation Status</th>
+              <th>Transaction Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in mismatches %}
+            <tr>
+              <td>{{ m.donation_id }}</td>
+              <td class="text-primary">{{ m.donation_status }}</td>
+              <td class="text-danger">{{ m.txn_status }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <form action="{{ url_for('fix_db_sync') }}" method="POST">
+        <button type="submit" class="btn btn-success">
+          🛠 Fix Mismatched Records Automatically
+        </button>
+      </form>
+      {% else %}
+      <div class="alert alert-success text-center">
+        ✅ All records are consistent between both tables.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="text-center mt-4">
+    <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+      ⬅ Back to Dashboard
+    </a>
+  </div>
+</div>
+{% endblock %}

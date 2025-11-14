@@ -1,157 +1,218 @@
 {% extends "base.html" %} {% block title %}My Profile - Goodness Grid{% endblock
 %} {% block content %}
+
 <div class="container my-5">
-  <div class="row">
-    <!-- Profile Card -->
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-body text-center">
-          <!-- Profile Avatar -->
-          <div class="profile-avatar mb-3">
-            <div class="avatar-circle">{{ user.name[0]|upper }}</div>
+  <div
+    class="page-header p-4 rounded-4 shadow-sm mb-5 text-white d-flex justify-content-between align-items-center"
+    style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+  >
+    <div>
+      <h1 class="fw-bold mb-1">My Profile</h1>
+      <p class="mb-0 opacity-75">View and manage your account details</p>
+    </div>
+    <a
+      href="/dashboard"
+      class="btn btn-light fw-semibold px-4 py-2 shadow-sm rounded-pill"
+    >
+      ← Back to Dashboard
+    </a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-4 mb-4 mb-lg-0">
+      <div class="card shadow-sm rounded-4 border-0">
+        <div class="card-body text-center p-4">
+          <div
+            class="d-flex align-items-center justify-content-center bg-success text-white rounded-circle mx-auto shadow-sm mb-3"
+            style="width: 120px; height: 120px"
+          >
+            <span class="fw-bold" style="font-size: 3rem"
+              >{{ user.name[0]|upper }}</span
+            >
           </div>
 
-          <h3>{{ user.name }}</h3>
+          <h3 class="fw-bold">{{ user.name }}</h3>
           <p class="text-muted">{{ user.email }}</p>
 
-          <span
-            class="badge {% if user.role == 'admin' %}bg-danger {% elif user.role == 'donor' %}bg-success {% elif user.role == 'receiver' or user.role == 'ngo' %}bg-primary {% elif user.role == 'volunteer' %}bg-warning {% endif %} mb-3"
-          >
-            {{ user.role|upper }}
-          </span>
+          <div class="mb-3">
+            <span
+              class="badge rounded-pill px-3 py-2 {% if user.role == 'admin' %}bg-danger {% elif user.role == 'donor' %}bg-success {% elif user.role == 'receiver' or user.role == 'ngo' %}bg-primary {% elif user.role == 'volunteer' %}bg-warning text-dark{% endif %}"
+            >
+              {{ user.role|upper }}
+            </span>
+            {% if user.verified %}
+            <span class="badge rounded-pill bg-success px-3 py-2"
+              >✓ Verified</span
+            >
+            {% else %}
+            <span class="badge rounded-pill bg-secondary px-3 py-2"
+              >Not Verified</span
+            >
+            {% endif %}
+          </div>
 
-          {% if user.verified %}
-          <p><span class="badge bg-success">✓ Verified</span></p>
-          {% else %}
-          <p><span class="badge bg-secondary">Not Verified</span></p>
-          {% endif %}
-
-          <hr />
+          <hr class="my-4" />
 
           <div class="d-grid gap-2">
-            <a href="/edit-profile" class="btn btn-primary">Edit Profile</a>
-            <a href="/change-password" class="btn btn-outline-secondary"
-              >Change Password</a
+            <a href="/edit-profile" class="btn btn-success rounded-pill"
+              >Edit Profile</a
             >
-            <a href="/dashboard" class="btn btn-outline-success"
-              >Back to Dashboard</a
+            <a
+              href="/change-password"
+              class="btn btn-outline-success rounded-pill"
+              >Change Password</a
             >
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Profile Details -->
-    <div class="col-md-8">
-      <!-- Personal Information -->
-      <div class="card shadow-sm mb-4">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0">Personal Information</h5>
-        </div>
-        <div class="card-body">
+    <div class="col-lg-8">
+      <div class="card shadow-sm rounded-4 border-0 mb-4">
+        <div class="card-body p-4 p-md-5">
+          <h4 class="mb-4 fw-semibold text-success">Personal Information</h4>
           <div class="row mb-3">
             <div class="col-md-4"><strong>Full Name:</strong></div>
-            <div class="col-md-8">{{ user.name }}</div>
+            <div class="col-md-8 text-muted">{{ user.name }}</div>
           </div>
+          <hr style="border-top: 1px dashed #e0e0e0" />
           <div class="row mb-3">
             <div class="col-md-4"><strong>Email:</strong></div>
-            <div class="col-md-8">{{ user.email }}</div>
+            <div class="col-md-8 text-muted">{{ user.email }}</div>
           </div>
+          <hr style="border-top: 1px dashed #e0e0e0" />
           <div class="row mb-3">
             <div class="col-md-4"><strong>Phone:</strong></div>
-            <div class="col-md-8">
+            <div class="col-md-8 text-muted">
               {{ user.phone if user.phone else 'Not provided' }}
             </div>
           </div>
+          <hr style="border-top: 1px dashed #e0e0e0" />
           <div class="row mb-3">
             <div class="col-md-4"><strong>Address:</strong></div>
-            <div class="col-md-8">
+            <div class="col-md-8 text-muted">
               {{ user.address if user.address else 'Not provided' }}
             </div>
           </div>
+          <hr style="border-top: 1px dashed #e0e0e0" />
           <div class="row mb-3">
             <div class="col-md-4"><strong>Role:</strong></div>
-            <div class="col-md-8">{{ user.role|capitalize }}</div>
+            <div class="col-md-8 text-muted">{{ user.role|capitalize }}</div>
           </div>
+          <hr style="border-top: 1px dashed #e0e0e0" />
           <div class="row">
             <div class="col-md-4"><strong>Member Since:</strong></div>
-            <div class="col-md-8">
+            <div class="col-md-8 text-muted">
               {{ user.created_at.strftime('%B %d, %Y') }}
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Activity Statistics -->
-      <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">
-          <h5 class="mb-0">Activity Summary</h5>
-        </div>
-        <div class="card-body">
+      <div class="card shadow-sm rounded-4 border-0">
+        <div class="card-body p-4 p-md-5">
+          <h4 class="mb-4 fw-semibold text-success">Activity Summary</h4>
+
           {% if user.role == 'donor' %}
           <div class="row text-center">
             <div class="col-md-3">
-              <h3 class="text-success">{{ stats.total if stats else 0 }}</h3>
-              <p class="text-muted mb-0">Total Donations</p>
+              <div class="stat-box">
+                <h3 class="text-success fw-bold">
+                  {{ stats.total if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Total Donations</p>
+              </div>
             </div>
             <div class="col-md-3">
-              <h3 class="text-warning">
-                {{ stats.available if stats else 0 }}
-              </h3>
-              <p class="text-muted mb-0">Available</p>
+              <div class="stat-box">
+                <h3 class="text-warning fw-bold">
+                  {{ stats.available if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Available</p>
+              </div>
             </div>
             <div class="col-md-3">
-              <h3 class="text-info">{{ stats.claimed if stats else 0 }}</h3>
-              <p class="text-muted mb-0">Claimed</p>
+              <div class="stat-box">
+                <h3 class="text-info fw-bold">
+                  {{ stats.claimed if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Claimed</p>
+              </div>
             </div>
             <div class="col-md-3">
-              <h3 class="text-primary">
-                {{ stats.completed if stats else 0 }}
-              </h3>
-              <p class="text-muted mb-0">Completed</p>
+              <div class="stat-box">
+                <h3 class="text-primary fw-bold">
+                  {{ stats.completed if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Completed</p>
+              </div>
             </div>
           </div>
 
           {% elif user.role == 'receiver' or user.role == 'ngo' %}
-          <div class="row text-center">
+          <div class="row text-center g-3">
             <div class="col-md-4">
-              <h3 class="text-success">
-                {{ stats.total_claimed if stats else 0 }}
-              </h3>
-              <p class="text-muted mb-0">Total Claimed</p>
+              <div class="stat-box">
+                <h3 class="text-success fw-bold">
+                  {{ stats.total_claimed if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Total Claimed</p>
+              </div>
             </div>
             <div class="col-md-4">
-              <h3 class="text-warning">{{ stats.pending if stats else 0 }}</h3>
-              <p class="text-muted mb-0">Pending</p>
+              <div class="stat-box">
+                <h3 class="text-warning fw-bold">
+                  {{ stats.pending if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Pending</p>
+              </div>
             </div>
             <div class="col-md-4">
-              <h3 class="text-info">{{ stats.completed if stats else 0 }}</h3>
-              <p class="text-muted mb-0">Completed</p>
+              <div class="stat-box">
+                <h3 class="text-info fw-bold">
+                  {{ stats.completed if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Completed</p>
+              </div>
             </div>
           </div>
 
           {% elif user.role == 'volunteer' %}
-          <div class="row text-center">
+          <div class="row text-center g-3">
             <div class="col-md-4">
-              <h3 class="text-success">
-                {{ stats.total_tasks if stats else 0 }}
-              </h3>
-              <p class="text-muted mb-0">Total Tasks</p>
+              <div class="stat-box">
+                <h3 class="text-success fw-bold">
+                  {{ stats.total_tasks if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Total Tasks</p>
+              </div>
             </div>
             <div class="col-md-4">
-              <h3 class="text-warning">{{ stats.active if stats else 0 }}</h3>
-              <p class="text-muted mb-0">Active</p>
+              <div class="stat-box">
+                <h3 class="text-warning fw-bold">
+                  {{ stats.active if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Active</p>
+              </div>
             </div>
             <div class="col-md-4">
-              <h3 class="text-info">{{ stats.completed if stats else 0 }}</h3>
-              <p class="text-muted mb-0">Completed</p>
+              <div class="stat-box">
+                <h3 class="text-info fw-bold">
+                  {{ stats.completed if stats else 0 }}
+                </h3>
+                <p class="text-muted mb-0">Completed</p>
+              </div>
             </div>
           </div>
 
           {% else %}
-          <p class="text-center text-muted">
-            Activity statistics not available for this role
-          </p>
+          <div class="empty-state m-0 border-0 shadow-none p-4">
+            <div class="empty-state-icon">📊</div>
+            <h4>No Activity</h4>
+            <p class="mb-0">
+              Activity statistics are not available for this role.
+            </p>
+          </div>
           {% endif %}
         </div>
       </div>
@@ -160,34 +221,14 @@
 </div>
 
 <style>
-  .avatar-circle {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #2e7d32, #4caf50);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    font-weight: bold;
-    margin: 0 auto;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  .stat-box {
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f5f5f5;
   }
-
-  .profile-avatar {
-    animation: fadeInUp 0.6s ease-out;
-  }
-
-  @keyframes fadeInUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  .stat-box h3 {
+    margin: 0;
+    font-weight: 700;
   }
 </style>
 {% endblock %}

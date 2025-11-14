@@ -1,185 +1,214 @@
 {% extends "base.html" %} {% block title %}Analytics Dashboard - Admin{%
 endblock %} {% block content %}
-<div class="container-fluid my-4">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>📊 Analytics Dashboard</h1>
-    <a href="/dashboard" class="btn btn-outline-success">Back to Dashboard</a>
+
+<style>
+  .stat-box {
+    padding: 1rem;
+    border-radius: 8px;
+    background: #f5f5f5;
+  }
+  .stat-box h2 {
+    margin: 0;
+    font-weight: bold;
+  }
+</style>
+
+<div class="container-fluid my-5">
+  <div
+    class="page-header p-4 rounded-4 shadow-sm mb-5 text-white d-flex justify-content-between align-items-center"
+    style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+  >
+    <div>
+      <h1 class="fw-bold mb-1">📈 Analytics Dashboard</h1>
+      <p class="mb-0 opacity-75">View platform trends, user stats, and more</p>
+    </div>
+    <a
+      href="/dashboard"
+      class="btn btn-light fw-semibold px-4 py-2 shadow-sm rounded-pill"
+    >
+      ← Back to Dashboard
+    </a>
   </div>
 
-  <!-- Quick Stats Cards -->
-  <div class="row g-4 mb-4">
-    <div class="col-md-3">
-      <div class="card text-center stats-card bg-success text-white">
-        <div class="card-body">
-          <h3>{{ stats.total_users or 0 }}</h3>
-          <p class="mb-0">Total Users</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center stats-card bg-primary text-white">
-        <div class="card-body">
-          <h3>{{ stats.total_donations or 0 }}</h3>
-          <p class="mb-0">Total Donations</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center stats-card bg-warning text-white">
-        <div class="card-body">
-          <h3>{{ stats.total_transactions or 0 }}</h3>
-          <p class="mb-0">Transactions</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-3">
-      <div class="card text-center stats-card bg-info text-white">
-        <div class="card-body">
-          <h3>{{ stats.completion_rate or 0 }}%</h3>
-          <p class="mb-0">Completion Rate</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Charts Row 1 -->
-  <div class="row g-4 mb-4">
-    <!-- Donation Trends Chart -->
-    <div class="col-md-8">
-      <div class="card shadow-sm">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0">📈 Donations Over Time (Last 30 Days)</h5>
-        </div>
-        <div class="card-body">
-          <canvas id="donationTrendsChart" height="80"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Donation Type Distribution -->
-    <div class="col-md-4">
-      <div class="card shadow-sm">
-        <div class="card-header bg-primary text-white">
-          <h5 class="mb-0">🎯 Donation Types</h5>
-        </div>
-        <div class="card-body">
-          <canvas id="typeDistributionChart"></canvas>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Charts Row 2 -->
-  <div class="row g-4 mb-4">
-    <!-- Completion Rate Trend -->
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-info text-white">
-          <h5 class="mb-0">✅ Completion Rate Trend</h5>
-        </div>
-        <div class="card-body">
-          <canvas id="completionTrendChart" height="100"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- Top Donors -->
-    <div class="col-md-6">
-      <div class="card shadow-sm">
-        <div class="card-header bg-warning text-white">
-          <h5 class="mb-0">🏆 Top 5 Donors</h5>
-        </div>
-        <div class="card-body">
-          {% if top_donors %}
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead>
-                <tr>
-                  <th>Rank</th>
-                  <th>Name</th>
-                  <th>Total Donations</th>
-                  <th>Completed</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for donor in top_donors %}
-                <tr>
-                  <td>
-                    {% if loop.index == 1 %}🥇 {% elif loop.index == 2 %}🥈 {%
-                    elif loop.index == 3 %}🥉 {% else %}{{ loop.index }} {%
-                    endif %}
-                  </td>
-                  <td>{{ donor.name }}</td>
-                  <td>
-                    <span class="badge bg-primary"
-                      >{{ donor.total_donations }}</span
-                    >
-                  </td>
-                  <td>
-                    <span class="badge bg-success"
-                      >{{ donor.completed_donations }}</span
-                    >
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
+  <section class="mb-4">
+    <div class="row g-4">
+      <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h2 class="text-success fw-bold">{{ stats.total_users or 0 }}</h2>
+            <p class="text-muted mb-0">Total Users</p>
           </div>
-          {% else %}
-          <p class="text-center text-muted">No donor data available yet</p>
-          {% endif %}
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- User Statistics by Role -->
-  <div class="row g-4 mb-4">
-    <div class="col-md-12">
-      <div class="card shadow-sm">
-        <div class="card-header bg-secondary text-white">
-          <h5 class="mb-0">👥 User Statistics by Role</h5>
+      <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h2 class="text-primary fw-bold">
+              {{ stats.total_donations or 0 }}
+            </h2>
+            <p class="text-muted mb-0">Total Donations</p>
+          </div>
         </div>
-        <div class="card-body">
-          <div class="row text-center">
-            <div class="col-md-3">
-              <div class="stat-box">
-                <h2 class="text-success">
-                  {{ stats.users_by_role.get('donor', 0) }}
-                </h2>
-                <p class="text-muted">Donors</p>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-box">
-                <h2 class="text-primary">
-                  {{ stats.users_by_role.get('receiver', 0) +
-                  stats.users_by_role.get('ngo', 0) }}
-                </h2>
-                <p class="text-muted">NGOs/Receivers</p>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-box">
-                <h2 class="text-warning">
-                  {{ stats.users_by_role.get('volunteer', 0) }}
-                </h2>
-                <p class="text-muted">Volunteers</p>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <div class="stat-box">
-                <h2 class="text-danger">
-                  {{ stats.users_by_role.get('admin', 0) }}
-                </h2>
-                <p class="text-muted">Admins</p>
-              </div>
-            </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h2 class="text-warning fw-bold">
+              {{ stats.total_transactions or 0 }}
+            </h2>
+            <p class="text-muted mb-0">Transactions</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card text-center border-0 shadow-sm rounded-4">
+          <div class="card-body p-4">
+            <h2 class="text-info fw-bold">{{ stats.completion_rate or 0 }}%</h2>
+            <p class="text-muted mb-0">Completion Rate</p>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </section>
+
+  <section class="mb-4">
+    <div class="row g-4">
+      <div class="col-md-8">
+        <div class="card shadow-sm rounded-4 border-0">
+          <div class="card-body p-4">
+            <h4 class="mb-3 fw-semibold text-success">
+              📈 Donations Over Time (Last 30 Days)
+            </h4>
+            <canvas id="donationTrendsChart" height="80"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="card shadow-sm rounded-4 border-0">
+          <div class="card-body p-4">
+            <h4 class="mb-3 fw-semibold text-primary">🎯 Donation Types</h4>
+            <canvas id="typeDistributionChart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-4">
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="card shadow-sm rounded-4 border-0">
+          <div class="card-body p-4">
+            <h4 class="mb-3 fw-semibold text-info">✅ Completion Rate Trend</h4>
+            <canvas id="completionTrendChart" height="100"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card shadow-sm rounded-4 border-0">
+          <div class="card-body p-4">
+            <h4 class="mb-3 fw-semibold text-warning">🏆 Top 5 Donors</h4>
+            {% if top_donors %}
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Name</th>
+                    <th>Total Donations</th>
+                    <th>Completed</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for donor in top_donors %}
+                  <tr>
+                    <td>
+                      {% if loop.index == 1 %}🥇 {% elif loop.index == 2 %}🥈 {%
+                      elif loop.index == 3 %}🥉 {% else %}{{ loop.index }} {%
+                      endif %}
+                    </td>
+                    <td>{{ donor.name }}</td>
+                    <td>
+                      <span class="badge bg-primary rounded-pill px-3 py-2"
+                        >{{ donor.total_donations }}</span
+                      >
+                    </td>
+                    <td>
+                      <span class="badge bg-success rounded-pill px-3 py-2"
+                        >{{ donor.completed_donations }}</span
+                      >
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+            {% else %}
+            <div class="empty-state p-4">
+              <div class="empty-state-icon">🏆</div>
+              <h5 class="text-success">No Donor Data</h5>
+              <p class="mb-0">
+                No donor data is available yet. Check back when donations have
+                been made!
+              </p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="mb-4">
+    <div class="row g-4">
+      <div class="col-md-12">
+        <div class="card shadow-sm rounded-4 border-0">
+          <div class="card-body p-4">
+            <h4 class="mb-3 fw-semibold text-secondary">
+              👥 User Statistics by Role
+            </h4>
+            <div class="row text-center">
+              <div class="col-md-3">
+                <div class="stat-box">
+                  <h2 class="text-success">
+                    {{ stats.users_by_role.get('donor', 0) }}
+                  </h2>
+                  <p class="text-muted">Donors</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-box">
+                  <h2 class="text-primary">
+                    {{ stats.users_by_role.get('receiver', 0) +
+                    stats.users_by_role.get('ngo', 0) }}
+                  </h2>
+                  <p class="text-muted">NGOs/Receivers</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-box">
+                  <h2 class="text-warning">
+                    {{ stats.users_by_role.get('volunteer', 0) }}
+                  </h2>
+                  <p class="text-muted">Volunteers</p>
+                </div>
+              </div>
+              <div class="col-md-3">
+                <div class="stat-box">
+                  <h2 class="text-danger">
+                    {{ stats.users_by_role.get('admin', 0) }}
+                  </h2>
+                  <p class="text-muted">Admins</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
 
 <!-- Chart.js Library -->

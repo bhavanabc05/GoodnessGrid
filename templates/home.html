@@ -1,47 +1,100 @@
-{% extends "base.html" %} {% block title %}Home - Goodness Grid{% endblock %} {%
-block content %}
-<section class="hero-section">
-  <div class="container text-center">
+{% extends "base.html" %} {% block title %}Home - Goodness Grid{% endblock %}
+
+<style>
+  .about-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto; /* Center the icon block */
+  }
+</style>
+
+{% block content %}
+
+<section class="hero-section text-center">
+  <div class="container fade-in-up">
     <h1 class="display-3 fw-bold mb-4">Welcome to Goodness Grid</h1>
     <p class="lead mb-4">A Network of Good Deeds</p>
     <div class="d-flex justify-content-center gap-3">
-      <a href="/donate" class="btn btn-success btn-lg">Donate Now</a>
-      <a href="/about" class="btn btn-success btn-lg">Learn More</a>
+      <a href="/donate" class="btn btn-lg">Donate Now</a>
+      <a href="/about" class="btn btn-outline-light btn-lg">Learn More</a>
     </div>
   </div>
 </section>
 
 <section class="container my-5">
-  <h2 class="text-center mb-5">What We Do</h2>
+  <h2 class="text-center mb-5 fw-bold text-success">How It Works</h2>
   <div class="row g-4">
     <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="feature-icon mb-3">🎁</div>
-          <h3 class="card-title h5">For Donors</h3>
-          <p class="card-text">
+      <div class="card shadow-sm rounded-4 border-0 h-100 text-center">
+        <div class="card-body p-4 p-md-5">
+          <div
+            class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+          >
+            <i class="bi bi-gift-fill fs-2"></i>
+          </div>
+          <h3 class="card-title h5 fw-bold">For Donors</h3>
+          <p class="card-text text-muted">
             Donate food, clothes, medicines, books, electronics, or services.
           </p>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="feature-icon mb-3">🏥</div>
-          <h3 class="card-title h5">For NGOs</h3>
-          <p class="card-text">
+      <div class="card shadow-sm rounded-4 border-0 h-100 text-center">
+        <div class="card-body p-4 p-md-5">
+          <div
+            class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+          >
+            <i class="bi bi-hospital-fill fs-2"></i>
+          </div>
+          <h3 class="card-title h5 fw-bold">For NGOs</h3>
+          <p class="card-text text-muted">
             Browse and claim donations that match your needs.
           </p>
         </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body text-center">
-          <div class="feature-icon mb-3">🚚</div>
-          <h3 class="card-title h5">For Volunteers</h3>
-          <p class="card-text">Help manage pickup and delivery logistics.</p>
+      <div class="card shadow-sm rounded-4 border-0 h-100 text-center">
+        <div class="card-body p-4 p-md-5">
+          <div
+            class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+          >
+            <i class="bi bi-people-fill fs-2"></i>
+          </div>
+          <h3 class="card-title h5 fw-bold">For Volunteers</h3>
+          <p class="card-text text-muted">
+            Help manage pickup and delivery logistics.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container my-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div
+        class="card rounded-4 shadow-lg text-white p-4 p-md-5 text-center"
+        style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+      >
+        <div class="card-body">
+          <h2 class="fw-bold mb-3">Join Our Community</h2>
+          <p class="lead mb-4" style="max-width: 600px; margin: 0 auto 1.5rem">
+            Be a part of the Goodness Grid. Whether you are a donor, an
+            organization, or a volunteer, your contribution can help build a
+            better, more compassionate world.
+          </p>
+          <a
+            href="/register"
+            class="btn btn-light btn-lg fw-semibold px-5 py-2 shadow-sm rounded-pill"
+          >
+            Get Involved Now
+          </a>
         </div>
       </div>
     </div>

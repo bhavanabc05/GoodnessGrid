@@ -10,6 +10,7 @@ import csv
 import os
 from io import StringIO, BytesIO
 from datetime import datetime
+from mysql.connector import Error 
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file, make_response
 from database import (create_user, verify_user, get_user_by_email, test_connection,
                      create_donation, get_all_donations, get_donations_by_donor, 
@@ -23,7 +24,8 @@ from database import (create_user, verify_user, get_user_by_email, test_connecti
                      get_completion_rate_trend, get_user_growth_data, get_top_donors,
                      get_all_donations_for_export, get_all_users_for_export,
                      get_all_transactions_for_export, verify_user_email, is_email_verified,
-                     get_donation_by_id,get_recent_available_donations,get_average_rating_for_donor,add_feedback,get_feedback_for_donor)
+                     get_donation_by_id,get_recent_available_donations,get_average_rating_for_donor,add_feedback,
+                     get_feedback_for_donor,enable_self_pickup_for_expired_transactions,get_db_connection,get_matching_donations)
 
 
 
@@ -297,6 +299,7 @@ def register():
             role = request.form.get('role', '').strip()
             password = request.form.get('password', '')
             confirm_password = request.form.get('confirm_password', '')
+            ngo_type = request.form.get('ngo_type', '').strip()
             
             # Validation checks (keep existing validation)
             errors = []
@@ -344,6 +347,8 @@ def register():
                 kwargs['donor_type'] = 'individual'
             elif role == 'volunteer':
                 kwargs['availability'] = 'Weekdays'
+            elif role == 'receiver':
+                kwargs['ngo_type'] = ngo_type
             
             user_id = create_user(
                 name=fullname,
@@ -444,24 +449,48 @@ def dashboard():
         'recent_donations': [],
         'avg_rating': 0,
         'feedback_list': [],
+        # New keys (default values)
+        'any_claims_self_pickup': False,
+        'self_pickup_transaction_id': None,
+        'donor_level': {},
+        'badges': [],
+        'streak': 0
     }
     
     role = session.get('role')
     user_id = session.get('user_id')
 
+    # -------------------------------
     # DONOR DASHBOARD
+    # -------------------------------
     if role == 'donor':
         donations = get_donations_by_donor(user_id)
         dashboard_data['my_donations_count'] = len(donations)
         dashboard_data['available_count'] = len([d for d in donations if d['status'] == 'available'])
         dashboard_data['claimed_count'] = len([d for d in donations if d['status'] == 'claimed'])
         dashboard_data['completed_count'] = len([d for d in donations if d['status'] == 'completed'])
-        dashboard_data['avg_rating'] = get_average_rating_for_donor(session['user_id'])
+        dashboard_data['avg_rating'] = get_average_rating_for_donor(user_id)
         dashboard_data['feedback_list'] = get_feedback_for_donor(user_id)
-        # default for everyone
+        
+        # === START: GAMIFICATION LOGIC ===
+        
+        # 1. Calculate Donor Level
+        donor_level_info = get_donor_level(dashboard_data['my_donations_count'])
+        dashboard_data['donor_level'] = donor_level_info
+        
+        # 2. Calculate Donation Streak (needs the full 'donations' list)
+        streak_count = calculate_donation_streak(donations)
+        dashboard_data['streak'] = streak_count
+        
+        # 3. Get Earned Badges (pass all data we've collected)
+        earned_badges = get_earned_badges(dashboard_data)
+        dashboard_data['badges'] = earned_badges
+        
+        # === END: GAMIFICATION LOGIC ===
 
-
+    # -------------------------------
     # VOLUNTEER DASHBOARD
+    # -------------------------------
     elif role == 'volunteer':
         pending = get_pending_pickups()
         my_tasks = get_volunteer_assignments(user_id)
@@ -469,20 +498,60 @@ def dashboard():
         dashboard_data['my_in_progress'] = len([t for t in my_tasks if t['status'] == 'in_progress'])
         dashboard_data['my_completed'] = len([t for t in my_tasks if t['status'] == 'completed'])
 
+    # -------------------------------
     # RECEIVER / NGO DASHBOARD
+    # -------------------------------
     elif role in ['receiver', 'ngo']:
+        user = get_user_by_id(user_id) 
+        ngo_type = user.get('ngo_type') if user else None
+        
         all_donations = get_all_donations(status='available')
         claimed_donations = get_claimed_donations_by_ngo(user_id)
+        
         dashboard_data['total_donations'] = len(all_donations)
         dashboard_data['claimed_count'] = len(claimed_donations)
         dashboard_data['completed_count'] = len([d for d in claimed_donations if d['status'] == 'completed'])
-        dashboard_data['recent_donations'] = get_recent_available_donations(limit=6)
+        # dashboard_data['recent_donations'] = get_recent_available_donations(limit=6)
+        dashboard_data['recent_donations'] = get_matching_donations(ngo_type, limit=6)
+        dashboard_data['active_claims'] = [
+            d for d in claimed_donations if d['transaction_status'] in ('pending', 'in_progress')
+        ][:3]
 
+        # ✅ NEW LOGIC: Check for self-pickup eligibility
+        connection = get_db_connection()
+        if connection:
+            try:
+                cursor = connection.cursor(dictionary=True)
+                cursor.execute("""
+                    SELECT transaction_id
+                    FROM Transactions
+                    WHERE ngo_id = %s
+                      AND status = 'pending'
+                      AND self_pickup_allowed = TRUE
+                    ORDER BY created_at DESC
+                    LIMIT 1
+                """, (user_id,))
+                result = cursor.fetchone()
+                if result:
+                    dashboard_data['any_claims_self_pickup'] = True
+                    dashboard_data['self_pickup_transaction_id'] = result['transaction_id']
+                cursor.close()
+                connection.close()
+            except Exception as e:
+                print(f"⚠️ Error checking self-pickup eligibility: {e}")
+                if connection:
+                    connection.close()
+
+    # -------------------------------
     # ADMIN DASHBOARD
+    # -------------------------------
     elif role == 'admin':
         stats = get_platform_stats()
         dashboard_data.update(stats)
     
+    # -------------------------------
+    # Render Dashboard
+    # -------------------------------
     return render_template('dashboard.html', **dashboard_data)
 
 
@@ -658,42 +727,70 @@ def donate():
 # CLAIM DONATION ROUTE
 # CLAIM DONATION ROUTE with Email Notification
 @app.route('/claim-donation/<int:donation_id>', methods=['POST'])
-def claim_donation_route(donation_id):
-    """NGO claims a donation"""
-    
-    if 'email' not in session:
+def claim_donation(donation_id):
+    if 'email' not in session or session.get('role') not in ['receiver', 'ngo']:
         return redirect(url_for('login'))
-    
-    if session.get('role') not in ['receiver', 'ngo']:
+
+    connection = get_db_connection()
+    if not connection:
+        flash("Database connection failed!", "danger")
         return redirect(url_for('view_donations'))
-    
-    # Get donation details before claiming
-    donation = get_donation_by_id(donation_id)
-    
-    if donation:
-        success = claim_donation(donation_id, session['user_id'])
-        
-        if success:
-            # Send email notification to donor
-            donor_user = get_user_by_id(donation['donor_id'])
-            if donor_user and donor_user.get('email_verified'):
-                send_donation_claimed_email(
-                    donor_user['email'],
-                    donor_user['name'],
-                    donation['description'],
-                    session['fullname']
-                )
-            
-            flash('Donation claimed successfully!', 'success')
-            return redirect(url_for('view_donations'))
-    
-    flash('Failed to claim donation.', 'danger')
-    return redirect(url_for('view_donations'))
+
+    try:
+        cursor = connection.cursor()
+
+        # Create new transaction
+        cursor.execute("""
+            INSERT INTO Transactions (donation_id, ngo_id, status, created_at)
+            VALUES (%s, %s, 'pending', NOW())
+        """, (donation_id, session['user_id']))
+
+        # Update donation status
+        cursor.execute("""
+            UPDATE Donations
+            SET status = 'claimed'
+            WHERE donation_id = %s
+        """, (donation_id,))
+
+        connection.commit()
+        cursor.close()
+
+        flash("✅ Donation successfully claimed!", "success")
+        print(f"✅ Donation {donation_id} claimed by NGO {session['user_id']}")
+
+        return redirect(url_for('view_donations'))
+
+    except Exception as e:
+        print(f"❌ Error claiming donation: {e}")
+
+        # SAFE ROLLBACK
+        try:
+            if connection and connection.is_connected():
+                connection.rollback()
+        except:
+            pass
+
+        try:
+            if connection and connection.is_connected():
+                connection.close()
+        except:
+            pass
+
+        flash("⚠️ Something went wrong while claiming the donation.", "danger")
+        return redirect(url_for('view_donations'))
+
+    finally:
+        try:
+            if connection and connection.is_connected():
+                connection.close()
+        except:
+            pass
+
     
 # MY CLAIMS (for NGOs/receivers)
 @app.route('/my-claims')
 def my_claims():
-    """Show donations claimed by current NGO"""
+    """Show donations claimed by current NGO or receiver"""
     
     if 'email' not in session:
         return redirect(url_for('login'))
@@ -701,14 +798,48 @@ def my_claims():
     if session.get('role') not in ['receiver', 'ngo']:
         return redirect(url_for('dashboard'))
     
+    enable_self_pickup_for_expired_transactions();
     donations = get_claimed_donations_by_ngo(session['user_id'])
+
+    # ✅ Add Self Pickup Eligibility Info
+    connection = get_db_connection()
+    eligible_transactions = []
     
+    if connection:
+        try:
+            cursor = connection.cursor(dictionary=True)
+            cursor.execute("""
+                SELECT transaction_id, donation_id
+                FROM Transactions
+                WHERE ngo_id = %s
+                  AND status = 'pending'
+                  AND self_pickup_allowed = TRUE
+            """, (session['user_id'],))
+            eligible_transactions = cursor.fetchall()
+            cursor.close()
+            connection.close()
+        except Exception as e:
+            print(f"⚠️ Error fetching self-pickup eligible transactions: {e}")
+            if connection:
+                connection.close()
+
+    # Mark eligible donations for the template
+    eligible_donation_ids = [row['donation_id'] for row in eligible_transactions]
+
+    for donation in donations:
+        donation['self_pickup_allowed'] = donation['donation_id'] in eligible_donation_ids
+        # Find matching transaction_id for button action
+        for row in eligible_transactions:
+            if row['donation_id'] == donation['donation_id']:
+                donation['transaction_id'] = row['transaction_id']
+
     return render_template('my_claims.html', donations=donations)
+
 
 # VOLUNTEER DASHBOARD
 @app.route('/volunteer-pickups')
 def volunteer_pickups():
-    """Show available pickups for volunteers"""
+    """Show available pickups and volunteer assignments"""
     
     if 'email' not in session:
         return redirect(url_for('login'))
@@ -716,14 +847,26 @@ def volunteer_pickups():
     if session.get('role') != 'volunteer':
         return redirect(url_for('dashboard'))
     
-    # Get all pending pickups
-    pending = get_pending_pickups()
-    # Get volunteer's assigned tasks
-    my_tasks = get_volunteer_assignments(session['user_id'])
-    
-    return render_template('volunteer_pickups.html', 
-                         pending_pickups=pending, 
-                         my_assignments=my_tasks)
+    volunteer_id = session['user_id']
+
+    # Get ALL tasks assigned to this volunteer
+    my_assignments = get_volunteer_assignments(volunteer_id)
+
+    # Filter tasks by status
+    my_active = [t for t in my_assignments if t['status'] == 'in_progress']
+    my_completed = [t for t in my_assignments if t['status'] == 'completed']
+
+    # Get available pickups
+    pending_pickups = get_pending_pickups()
+
+    return render_template(
+        'volunteer_pickups.html',
+        pending_pickups=pending_pickups,
+        my_assignments=my_assignments,   # full list
+        my_active=my_active,             # active tasks only
+        my_completed=my_completed        # completed tasks only
+    )
+
 
 
 # VOLUNTEER ACCEPTS PICKUP
@@ -1352,8 +1495,324 @@ def submit_feedback(donation_id):
     return redirect(url_for('my_claims'))
 
 
-  
- 
+@app.route('/self_pickup/<int:transaction_id>', methods=['POST'])
+def mark_self_pickup(transaction_id):
+    """Receiver marks donation as self-picked up after 24 hours"""
+    
+    connection = get_db_connection()
+    if not connection:
+        flash("❌ Database connection failed!", "danger")
+        return redirect(url_for('my_claims'))
+    
+    try:
+        cursor = connection.cursor(dictionary=True)
+
+        # Find related donation_id
+        cursor.execute("SELECT donation_id FROM Transactions WHERE transaction_id = %s", (transaction_id,))
+        txn = cursor.fetchone()
+        if not txn:
+            flash("⚠️ Transaction not found!", "warning")
+            return redirect(url_for('my_claims'))
+
+        donation_id = txn['donation_id']
+
+        # Update both tables atomically
+        cursor.execute("""
+            UPDATE Transactions
+            SET status = 'completed',
+                completed_at = NOW(),
+                self_pickup_allowed = FALSE
+            WHERE transaction_id = %s
+        """, (transaction_id,))
+
+        cursor.execute("""
+            UPDATE Donations
+            SET status = 'completed'
+            WHERE donation_id = %s
+        """, (donation_id,))
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        flash("✅ Donation successfully marked as self-picked up!", "success")
+        return redirect(url_for('my_claims'))
+
+    except Exception as e:
+        print(f"❌ Error in self-pickup route: {e}")
+        if connection:
+            connection.rollback()
+            connection.close()
+        flash("⚠️ Something went wrong while marking self-pickup.", "danger")
+        return redirect(url_for('my_claims'))
+
+@app.route('/self_pickup/<int:donation_id>', methods=['POST'])
+def self_pickup(donation_id):
+
+    if 'email' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session.get('user_id')
+
+    connection = get_db_connection()
+    cursor = connection.cursor()
+
+    try:
+        # Update donation status → completed
+        cursor.execute("""
+            UPDATE Donations 
+            SET status='completed'
+            WHERE donation_id=%s
+        """, (donation_id,))
+
+        # Update transaction → completed
+        cursor.execute("""
+            UPDATE Transactions
+            SET status='completed', completed_at=NOW()
+            WHERE donation_id=%s
+        """, (donation_id,))
+
+        connection.commit()
+        flash("🚶‍♂ Self pickup confirmed! Donation marked as completed.", "success")
+
+    except Error as e:
+        connection.rollback()
+        flash(f"❌ Error: {e}", "danger")
+
+    finally:
+        cursor.close()
+        connection.close()
+
+    return redirect(url_for('my_claims'))
+
+
+@app.route('/admin/db-sync-check')
+def db_sync_check():
+    connection = get_db_connection()
+    cursor = connection.cursor(dictionary=True)
+    cursor.execute("""
+    SELECT d.donation_id, d.status AS donation_status, t.status AS txn_status
+    FROM Donations d
+    LEFT JOIN Transactions t ON d.donation_id = t.donation_id
+    WHERE (
+        (t.status = 'completed' AND d.status != 'completed')
+        OR (t.status IS NULL AND d.status NOT IN ('available', 'expired'))
+    )
+""")
+
+    mismatches = cursor.fetchall()
+    cursor.close()
+    connection.close()
+
+    if mismatches:
+        flash(f"⚠️ Found {len(mismatches)} mismatched records!", "warning")
+        return render_template("admin_sync_check.html", mismatches=mismatches)
+    else:
+        flash("✅ All donations and transactions are consistent!", "success")
+        return redirect(url_for('dashboard'))
+
+@app.route('/admin/fix-db-sync', methods=['POST'])
+def fix_db_sync():
+    """Fix mismatched donation and transaction statuses safely"""
+    connection = get_db_connection()
+    if not connection:
+        flash("Database connection failed!", "danger")
+        return redirect(url_for('dashboard'))
+
+    try:
+        cursor = connection.cursor()
+
+        # ✅ Step 1: Set Donations to 'claimed' where Transaction is 'pending' or 'in_progress'
+        cursor.execute("""
+            UPDATE Donations d
+            JOIN Transactions t ON d.donation_id = t.donation_id
+            SET d.status = 'claimed'
+            WHERE t.status IN ('pending', 'in_progress')
+              AND d.status != 'claimed';
+        """)
+
+        # ✅ Step 2: Set Donations to 'completed' where Transaction is 'completed'
+        cursor.execute("""
+            UPDATE Donations d
+            JOIN Transactions t ON d.donation_id = t.donation_id
+            SET d.status = 'completed'
+            WHERE t.status = 'completed'
+              AND d.status != 'completed';
+        """)
+
+        # ✅ Step 3: Optionally, set Donations to 'available' if no active transaction exists
+        cursor.execute("""
+            UPDATE Donations d
+            LEFT JOIN Transactions t ON d.donation_id = t.donation_id
+            SET d.status = 'available'
+            WHERE t.transaction_id IS NULL
+              AND d.status != 'available';
+        """)
+
+        connection.commit()
+        cursor.close()
+        connection.close()
+
+        flash("✅ Database sync completed successfully!", "success")
+        return redirect(url_for('dashboard'))
+
+    except Exception as e:
+        print(f"❌ Error fixing DB sync: {e}")
+        if connection:
+            connection.rollback()
+            connection.close()
+        flash("⚠️ Failed to fix mismatched records.", "danger")
+        return redirect(url_for('dashboard'))
+
+# ===============================================
+# GAMIFICATION HELPER FUNCTIONS
+# ===============================================
+
+def get_donor_level(donation_count):
+    """Calculates a donor's level and progress to the next level."""
+    levels = [
+        (0, "New Donor", 1),
+        (1, "Kind Giver", 5),
+        (5, "Community Hero", 15),
+        (15, "Goodness Champion", 30),
+        (30, "Platform Legend", float('inf'))
+    ]
+    
+    level_name = "New Donor"
+    next_level_name = "Kind Giver"
+    donations_to_next = 1
+    progress_percent = 0
+    level_min = 0
+    level_max = 1
+
+    for min_donations, name, next_goal in levels:
+        if donation_count >= min_donations:
+            level_name = name
+            next_level_name = levels[levels.index((min_donations, name, next_goal)) + 1][1] if next_goal != float('inf') else None
+            donations_to_next = next_goal - donation_count
+            level_min = min_donations
+            level_max = next_goal
+        else:
+            break
+            
+    if next_level_name is None:
+        # Max level reached
+        progress_percent = 100
+        donations_to_next = 0
+    elif level_max > level_min:
+        progress_percent = max(0, min(100, int(((donation_count - level_min) / (level_max - level_min)) * 100)))
+
+    return {
+        'level_name': level_name,
+        'next_level_name': next_level_name,
+        'donations_to_next': donations_to_next,
+        'progress_percent': progress_percent
+    }
+
+def get_earned_badges(donor_data):
+    """Checks donor data and returns a list of earned badges."""
+    badges = []
+    
+    # Badge 1: First Donation
+    if donor_data.get('my_donations_count', 0) >= 1:
+        badges.append({
+            'name': 'First Step',
+            'icon': '🥇',
+            'description': 'You posted your very first donation!'
+        })
+        
+    # Badge 2: First Completed Donation
+    if donor_data.get('completed_count', 0) >= 1:
+        badges.append({
+            'name': 'Helping Hand',
+            'icon': '🤝',
+            'description': 'Your donation was successfully completed.'
+        })
+
+    # Badge 3: Generous Giver (5+ donations)
+    if donor_data.get('my_donations_count', 0) >= 5:
+        badges.append({
+            'name': 'Generous Giver',
+            'icon': '🎁',
+            'description': 'You\'ve posted 5 or more donations.'
+        })
+
+    # Badge 4: Community Favorite (Received feedback)
+    if donor_data.get('feedback_list') and len(donor_data.get('feedback_list', [])) > 0:
+        badges.append({
+            'name': 'Community Fave',
+            'icon': '💬',
+            'description': 'You received your first feedback from a receiver.'
+        })
+
+    # Badge 5: 5-Star Donor
+    if donor_data.get('avg_rating', 0) >= 4.5:
+        badges.append({
+            'name': 'Top Rated',
+            'icon': '⭐',
+            'description': 'You have an average rating of 4.5 stars or higher!'
+        })
+        
+    # Badge 6: Community Hero (Rank reached)
+    if donor_data.get('donor_level', {}).get('level_name') == "Community Hero":
+         badges.append({
+            'name': 'Community Hero',
+            'icon': '🦸',
+            'description': 'You reached the rank of Community Hero. Amazing!'
+        })
+
+    return badges
+
+def calculate_donation_streak(donations_list):
+    """Calculates consecutive monthly donation streak."""
+    if not donations_list:
+        return 0
+
+    # Get unique (year, month) tuples from donation dates, sorted
+    donation_months = sorted(list(set(
+        (d['created_at'].year, d['created_at'].month) for d in donations_list
+    )))
+    
+    if not donation_months:
+        return 0
+
+    from datetime import datetime
+    today = datetime.now()
+    current_year, current_month = today.year, today.month
+
+    # Check if the most recent donation was this month or last month
+    last_donation_year, last_donation_month = donation_months[-1]
+    
+    # Calculate month difference
+    month_diff = (current_year - last_donation_year) * 12 + (current_month - last_donation_month)
+
+    if month_diff > 1:
+        # Streak is broken (more than 1 month ago)
+        return 0
+    
+    # Start from the most recent donation month
+    streak = 0
+    expected_year, expected_month = last_donation_year, last_donation_month
+
+    for year, month in reversed(donation_months):
+        if year == expected_year and month == expected_month:
+            streak += 1
+            # Decrement expected month/year
+            expected_month -= 1
+            if expected_month == 0:
+                expected_month = 12
+                expected_year -= 1
+        else:
+            # Gap found, break
+            break
+            
+    # If the last donation was last month, but they haven't donated this month,
+    # the streak is still valid, but we don't count the current month.
+    # The logic above already handles this by starting from the *last donation month*.
+    
+    return streak
+
+# ===============================================
 # Run the app
 if __name__ == '__main__':
     app.run(debug=DEBUG, port=PORT)

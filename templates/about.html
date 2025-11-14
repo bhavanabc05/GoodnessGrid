@@ -1,17 +1,39 @@
 {% extends "base.html" %} {% block title %}About Us - Goodness Grid{% endblock
 %} {% block content %}
+
+<style>
+  .about-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+  }
+</style>
+
 <div class="container my-5">
+  <div
+    class="page-header p-4 rounded-4 shadow-sm mb-5 text-white d-flex justify-content-between align-items-center"
+    style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+  >
+    <div>
+      <h1 class="fw-bold mb-1">About Goodness Grid</h1>
+      <p class="mb-0 opacity-75">Connecting Communities, Sharing Goodness</p>
+    </div>
+    <a
+      href="/"
+      class="btn btn-light fw-semibold px-4 py-2 shadow-sm rounded-pill"
+    >
+      ← Back to Home
+    </a>
+  </div>
+
   <div class="row justify-content-center">
     <div class="col-lg-10">
-      <div class="text-center mb-5">
-        <h1 class="display-4 mb-3">About Goodness Grid</h1>
-        <p class="lead">Connecting Communities, Sharing Goodness</p>
-      </div>
-
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body p-4">
-          <h3 class="text-success mb-3">Our Mission</h3>
-          <p>
+      <div class="card shadow-sm rounded-4 border-0 mb-4">
+        <div class="card-body p-4 p-md-5">
+          <h3 class="fw-bold text-success mb-3">Our Mission</h3>
+          <p class="fs-5 text-muted">
             Our mission is to create a seamless and efficient network that
             bridges the gap between surplus and need. We are dedicated to
             empowering communities by providing a centralized platform where
@@ -21,10 +43,10 @@
         </div>
       </div>
 
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body p-4">
-          <h3 class="text-success mb-3">Our Vision</h3>
-          <p>
+      <div class="card shadow-sm rounded-4 border-0 mb-4">
+        <div class="card-body p-4 p-md-5">
+          <h3 class="fw-bold text-success mb-3">Our Vision</h3>
+          <p class="fs-5 text-muted">
             We envision a world where waste is minimized, and every individual
             has access to the basic necessities for a dignified life. Goodness
             Grid aspires to be a leading force in fostering a culture of giving,
@@ -33,83 +55,121 @@
         </div>
       </div>
 
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body p-4">
-          <h3 class="text-success mb-3">What We Do</h3>
-          <p>
+      <div class="card shadow-sm rounded-4 border-0 mb-4">
+        <div class="card-body p-4 p-md-5">
+          <h3 class="fw-bold text-success mb-3">What We Do</h3>
+          <p class="fs-5 text-muted">
             Goodness Grid is an online platform that connects donors with
             non-profit organizations and volunteers. We make it easy for
             individuals and businesses to donate surplus items, for NGOs to find
             and claim the resources they need, and for volunteers to contribute
-            their time and skills to make a tangible impact.
+            their time and skills.
           </p>
+          <hr class="my-4" />
           <div class="row mt-4">
             <div class="col-md-4 text-center mb-3">
-              <div class="feature-icon">🎁</div>
-              <h5>Empowering Donors</h5>
-              <p>
-                We provide a simple and reliable way for you to give back to
-                your community.
+              <div
+                class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+              >
+                <i class="bi bi-gift-fill fs-2"></i>
+              </div>
+              <h5 class="fw-bold">Empowering Donors</h5>
+              <p class="text-muted">
+                A simple and reliable way to give back to your community.
               </p>
             </div>
             <div class="col-md-4 text-center mb-3">
-              <div class="feature-icon">🏥</div>
-              <h5>Supporting NGOs</h5>
-              <p>
-                We help organizations access a steady stream of donations to
-                support their vital work.
+              <div
+                class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+              >
+                <i class="bi bi-hospital-fill fs-2"></i>
+              </div>
+              <h5 class="fw-bold">Supporting NGOs</h5>
+              <p class="text-muted">
+                Access a steady stream of donations to support your vital work.
               </p>
             </div>
             <div class="col-md-4 text-center mb-3">
-              <div class="feature-icon">🤝</div>
-              <h5>Engaging Volunteers</h5>
-              <p>
-                We offer opportunities for community members to get involved and
-                make a difference.
+              <div
+                class="about-icon bg-success-subtle text-success rounded-pill mb-3"
+              >
+                <i class="bi bi-people-fill fs-2"></i>
+              </div>
+              <h5 class="fw-bold">Engaging Volunteers</h5>
+              <p class="text-muted">
+                Opportunities to get involved and make a tangible impact.
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body p-4">
-          <h3 class="text-success mb-3">Our Values</h3>
-          <ul class="list-unstyled">
-            <li class="mb-2">
-              <strong>Compassion:</strong> We are driven by a deep sense of
-              empathy and a desire to help others.
-            </li>
-            <li class="mb-2">
-              <strong>Integrity:</strong> We operate with transparency and
-              accountability in all our interactions.
-            </li>
-            <li class="mb-2">
-              <strong>Community:</strong> We believe in the power of collective
-              action to create positive change.
-            </li>
-            <li class="mb-2">
-              <strong>Innovation:</strong> We leverage technology to create
-              effective and scalable solutions.
-            </li>
-          </ul>
+      <div class="card shadow-sm rounded-4 border-0 mb-4">
+        <div class="card-body p-4 p-md-5">
+          <h3 class="fw-bold text-success mb-3">Our Values</h3>
+          <div class="list-group list-group-flush">
+            <div class="list-group-item px-0">
+              <h5 class="mb-1">
+                <i class="bi bi-check-circle-fill text-success me-2"></i
+                >Compassion
+              </h5>
+              <p class="mb-0 text-muted">
+                We are driven by a deep sense of empathy and a desire to help
+                others.
+              </p>
+            </div>
+            <div class="list-group-item px-0">
+              <h5 class="mb-1">
+                <i class="bi bi-check-circle-fill text-success me-2"></i
+                >Integrity
+              </h5>
+              <p class="mb-0 text-muted">
+                We operate with transparency and accountability in all our
+                interactions.
+              </p>
+            </div>
+            <div class="list-group-item px-0">
+              <h5 class="mb-1">
+                <i class="bi bi-check-circle-fill text-success me-2"></i
+                >Community
+              </h5>
+              <p class="mb-0 text-muted">
+                We believe in the power of collective action to create positive
+                change.
+              </p>
+            </div>
+            <div class="list-group-item px-0">
+              <h5 class="mb-1">
+                <i class="bi bi-check-circle-fill text-success me-2"></i
+                >Innovation
+              </h5>
+              <p class="mb-0 text-muted">
+                We leverage technology to create effective and scalable
+                solutions.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="card mb-4 shadow-sm bg-success text-white">
-        <div class="card-body p-4 text-center">
-          <h3 class="mb-3">Join Our Community</h3>
-          <p class="mb-0">
-            Be a part of the Goodness Grid network. Whether you are a donor, an
+      <div
+        class="card rounded-4 shadow-lg text-white p-4 p-md-5 text-center"
+        style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+      >
+        <div class="card-body">
+          <h2 class="fw-bold mb-3">Join Our Community</h2>
+          <p class="lead mb-4" style="max-width: 600px; margin: 0 auto 1.5rem">
+            Be a part of the Goodness Grid. Whether you are a donor, an
             organization, or a volunteer, your contribution can help build a
             better, more compassionate world.
           </p>
+          <a
+            href="/register"
+            class="btn btn-light btn-lg fw-semibold px-5 py-2 shadow-sm rounded-pill"
+          >
+            Get Involved Now
+          </a>
         </div>
-      </div>
-
-      <div class="text-center mt-4">
-        <a href="/register" class="btn btn-success btn-lg me-3">Get Involved</a>
-        <a href="/" class="btn btn-outline-success btn-lg">Back to Home</a>
       </div>
     </div>
   </div>

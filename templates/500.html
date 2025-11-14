@@ -2,39 +2,23 @@
 endblock %} {% block content %}
 <div class="container my-5">
   <div class="row justify-content-center">
-    <div class="col-md-6 text-center">
-      <div class="error-page">
-        <h1 class="display-1 text-danger">500</h1>
-        <h2 class="mb-4">Internal Server Error</h2>
-        <p class="lead mb-4">
+    <div class="col-md-8">
+      <div class="empty-state">
+        <div class="empty-state-icon" style="font-size: 6rem">
+          <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+        </div>
+        <h1 class="display-1 fw-bold text-danger">500</h1>
+        <h2 class="fw-semibold mb-3">Internal Server Error</h2>
+        <p class="text-muted mb-4 fs-5">
           Oops! Something went wrong on our end. We're working to fix it.
         </p>
-        <div class="mb-4">
-          <svg width="200" height="200" viewBox="0 0 200 200">
-            <circle
-              cx="100"
-              cy="100"
-              r="80"
-              fill="#ffebee"
-              stroke="#f44336"
-              stroke-width="3"
-            />
-            <text
-              x="100"
-              y="120"
-              font-size="80"
-              text-anchor="middle"
-              fill="#f44336"
-            >
-              !
-            </text>
-          </svg>
-        </div>
         <div class="d-grid gap-2 d-md-block">
-          <a href="/" class="btn btn-danger btn-lg me-2">Go to Homepage</a>
+          <a href="/" class="btn btn-danger btn-lg rounded-pill px-4"
+            >Go to Homepage</a
+          >
           <a
             href="javascript:history.back()"
-            class="btn btn-outline-danger btn-lg"
+            class="btn btn-outline-danger btn-lg rounded-pill px-4"
             >Go Back</a
           >
         </div>
@@ -43,12 +27,4 @@ endblock %} {% block content %}
   </div>
 </div>
 
-<style>
-  .error-page {
-    padding: 3rem 0;
-  }
-  .error-page h1 {
-    font-weight: 900;
-  }
-</style>
 {% endblock %}

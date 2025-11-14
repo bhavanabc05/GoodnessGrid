@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
+
 /* GLOBAL STYLES */
 :root {
   --primary-green: #2e7d32;
@@ -7,11 +9,16 @@
 }
 
 body {
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-family: "Poppins", sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-light);
+
+  /* === NEW GRADIENT === */
+  /* A very soft fade from white to a light, hopeful green */
+  background: linear-gradient(180deg, #ffffff 0%, #e8f5e9 100%);
+  background-attachment: fixed; /* Keeps the gradient from scrolling */
+  background-color: var(--bg-light); /* Fallback */
 }
 
 main {
@@ -22,25 +29,59 @@ main {
 .navbar {
   box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
   padding: 1rem 0;
+  /* Use your brand gradient for the background */
+  background: linear-gradient(135deg, var(--primary-green), var(--light-green));
 }
 
 .navbar-brand {
   font-size: 1.5rem;
   font-weight: 700;
   letter-spacing: 0.5px;
+  /* Ensure brand is always white */
+  color: #fff !important;
 }
 
 .nav-link {
-  /* border-left:solid 2px yellow; */
-  color: white;
+  color: rgba(255, 255, 255, 0.85); /* A slightly softer white */
   font-weight: 500;
   margin: 0 5px;
   transition: all 0.3s ease;
+  /* Add padding and a transparent border for the "active" underline */
+  padding-bottom: 5px;
+  border-bottom: 3px solid transparent;
 }
 
 .nav-link:hover {
-  color: #c8e6c9;
+  color: #ffffff; /* Bright white on hover */
   transform: translateY(-2px);
+}
+
+/* This highlights the link of the page you are currently on */
+.nav-item .nav-link.active {
+  color: #ffffff;
+  font-weight: 700;
+  border-bottom: 3px solid #ffffff;
+}
+
+/* NAVBAR BUTTONS */
+/* Targets buttons like Login/Register when placed in the .navbar */
+.navbar .btn {
+  padding: 8px 20px; /* Slightly smaller padding for navbar */
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.8);
+  border-radius: 25px; /* Keep your rounded style */
+}
+
+/* Hover effect for navbar buttons */
+.navbar .btn:hover {
+  background: #ffffff;
+  color: var(--primary-green);
+  border: 2px solid #ffffff;
+  transform: scale(1.05); /* Keep your existing hover effects */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* HERO SECTION */
@@ -51,21 +92,45 @@ main {
     var(--light-green) 100%
   );
   color: white;
-  padding: 80px 0;
+  padding: 100px 0; /* A bit more padding for a bigger impact */
   margin: 40px auto;
   border-radius: 20px;
   max-width: 90%;
   box-shadow: 0 10px 40px rgba(46, 125, 50, 0.3);
+
+  /* === NEW: Add animation === */
+  /* Uses the @keyframes fadeInUp you already defined */
+  animation: fadeInUp 0.8s ease-out;
 }
 
 .hero-section h1 {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
   font-weight: 700;
+  font-size: 3.2rem; /* Slightly larger for more 'hero' feel */
 }
 
 .hero-section .lead {
   font-size: 1.3rem;
   font-weight: 300;
+  max-width: 700px; /* Constrain line width for readability */
+  margin: 1rem auto 2rem; /* Add space between text and button */
+}
+
+/* === NEW: Style for buttons inside the hero section === */
+.hero-section .btn {
+  background: #ffffff; /* Solid white to pop on the gradient */
+  color: var(--primary-green); /* Use your brand's green for text */
+  padding: 12px 35px; /* Make it a bit larger */
+  font-size: 1.1rem;
+  border: none;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+}
+
+.hero-section .btn:hover {
+  background: #f0f0f0; /* Off-white hover */
+  color: var(--hover-green);
+  transform: scale(1.05); /* Keep your existing hover effect */
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
 }
 
 /* CARDS */
@@ -146,26 +211,86 @@ main {
   margin-bottom: 8px;
 }
 
+/* EMPTY STATE CONTAINER */
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background-color: #fff;
+  border-radius: 15px; /* Match your card radius */
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  margin-top: 2rem;
+  border: 1px dashed #e0e0e0;
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  color: var(--light-green);
+  margin-bottom: 1rem;
+  line-height: 1;
+}
+
+.empty-state h4 {
+  color: var(--primary-green);
+  font-weight: 600;
+}
+
+.empty-state p {
+  color: #616161;
+  max-width: 400px;
+  margin: 0.5rem auto 1.5rem;
+}
+
 /* ALERTS */
 .alert {
-  border-radius: 15px;
+  border-radius: 10px; /* Use your form-control radius */
   border: none;
-  padding: 1.5rem;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+  border-left-width: 5px; /* The new colored border */
+}
+
+/* Add this to add an icon */
+.alert::before {
+  font-family: "Bootstrap-Icons"; /* Assumes you're using Bootstrap Icons */
+  font-weight: bold;
+  margin-right: 1rem;
 }
 
 .alert-success {
-  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
-  color: var(--primary-green);
+  background-color: #e8f5e9;
+  border-left-color: var(--light-green);
+  color: #1b5e20;
+}
+.alert-success::before {
+  content: "\F633"; /* Checkmark icon */
 }
 
 .alert-danger {
-  background: linear-gradient(135deg, #ffebee, #ffcdd2);
+  background-color: #ffebee;
+  border-left-color: #c62828;
   color: #c62828;
+}
+.alert-danger::before {
+  content: "\F33A"; /* X-circle icon */
 }
 
 .alert-info {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  background-color: #e3f2fd;
+  border-left-color: #1565c0;
   color: #1565c0;
+}
+.alert-info::before {
+  content: "\F431"; /* Info-circle icon */
+}
+
+/* You didn't have one, but it's good to add */
+.alert-warning {
+  background-color: #fff8e1;
+  border-left-color: #ff8f00;
+  color: #ff8f00;
+}
+.alert-warning::before {
+  content: "\F33B"; /* Warning triangle icon */
 }
 
 /* TABLE STYLING */

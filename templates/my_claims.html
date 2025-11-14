@@ -1,62 +1,106 @@
 {% extends "base.html" %} {% block title %}My Claims - Goodness Grid{% endblock
 %} {% block content %}
+
 <div class="container my-5">
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1>📊 My Claimed Donations</h1>
-    <a href="/dashboard" class="btn btn-outline-success">Back to Dashboard</a>
+  <div
+    class="page-header p-4 rounded-4 shadow-sm mb-4 text-white d-flex justify-content-between align-items-center"
+    style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+  >
+    <div>
+      <h1 class="fw-bold mb-1">📊 My Claimed Donations</h1>
+      <p class="mb-0 opacity-75">View the status of donations you've claimed</p>
+    </div>
+    <a
+      href="/dashboard"
+      class="btn btn-light fw-semibold px-4 py-2 shadow-sm rounded-pill"
+    >
+      ← Back to Dashboard
+    </a>
   </div>
 
   {% if donations %}
   <p class="text-muted mb-4">
-    You have claimed {{ donations|length }} donation(s)
+    <strong>{{ donations|length }}</strong> claim(s) found
   </p>
 
   <div class="row g-4">
     {% for donation in donations %}
     <div class="col-md-6">
-      <div class="card shadow-sm rounded-4 border-0">
-        <div class="card-header bg-warning text-white rounded-top-4">
-          <h5 class="mb-0">
+      <div class="card donation-card h-100 shadow-sm border-0 rounded-4">
+        <div
+          class="card-header text-white rounded-top-4"
+          style="background: linear-gradient(135deg, #27ae60, #1e8449)"
+        >
+          <h5 class="mb-0 fw-bold">
             {% if donation.type == 'food' %}🍽️ {% elif donation.type ==
             'clothes' %}👕 {% elif donation.type == 'books' %}📚 {% elif
             donation.type == 'medicine' %}💊 {% elif donation.type ==
             'electronics' %}💻 {% else %}📦 {% endif %} {{
-            donation.type|capitalize }} - {{ donation.status|upper }}
+            donation.type|capitalize }}
           </h5>
         </div>
-        <div class="card-body">
-          <p><strong>Description:</strong> {{ donation.description }}</p>
-          <p><strong>Quantity:</strong> {{ donation.quantity }}</p>
-          <p><strong>Donor:</strong> {{ donation.donor_name }}</p>
-          <p><strong>Pickup Address:</strong> {{ donation.pickup_address }}</p>
-          <p>
-            <strong>Transaction Status:</strong>
-            <span class="badge bg-info"
-              >{{ donation.transaction_status|capitalize }}</span
-            >
+
+        <div class="card-body d-flex flex-column">
+          <p class="fw-semibold fs-6">{{ donation.description }}</p>
+
+          <p class="text-muted small mb-2">
+            <strong>Quantity:</strong> {{ donation.quantity }}
           </p>
-          <p class="text-muted small">
+          <p class="text-muted small mb-2">
+            <strong>Donor:</strong> {{ donation.donor_name }}
+          </p>
+          <p class="text-muted small mb-3">
+            <strong>📍 Pickup:</strong> {{ donation.pickup_address }}
+          </p>
+
+          <div class="mb-3">
+            <strong>Status:</strong>
+            {% if donation.transaction_status == 'completed' %}
+            <span class="badge bg-success rounded-pill px-3 py-2"
+              >Completed</span
+            >
+            {% elif donation.transaction_status == 'in_progress' %}
+            <span class="badge bg-info rounded-pill px-3 py-2"
+              >In Progress</span
+            >
+            {% else %}
+            <span class="badge bg-warning text-dark rounded-pill px-3 py-2"
+              >Pending</span
+            >
+            {% endif %}
+          </div>
+
+          <p class="text-muted small mt-auto mb-0">
             Claimed on: {{ donation.created_at.strftime('%b %d, %Y') }}
           </p>
+        </div>
 
-          {% if donation.status == 'completed' %} {% if donation.has_feedback %}
-          <div class="mt-3 text-end text-muted small">
-            ✅ Feedback submitted
-          </div>
-          {% else %}
-          <div class="mt-3 text-end">
-            <button
-              class="btn btn-sm btn-outline-success"
-              onclick="openFeedbackModal('{{ donation.donation_id }}')"
-            >
-              💬 Give Feedback
+        <div class="card-footer bg-light rounded-bottom-4 text-end">
+          {% if donation.self_pickup_allowed == 1 and
+          donation.transaction_status == 'pending' %}
+          <form
+            action="/self_pickup/{{ donation.transaction_id }}"
+            method="POST"
+            class="d-inline self-pickup-form"
+          >
+            <button class="btn btn-outline-primary btn-sm rounded-pill">
+              🚶 Self Pickup
             </button>
-          </div>
+          </form>
+          {% endif %} {% if donation.status == 'completed' %} {% if
+          donation.has_feedback %}
+          <span class="badge bg-success rounded-pill px-3 py-2">
+            ✅ Feedback Submitted
+          </span>
+          {% else %}
+          <button
+            class="btn btn-success btn-sm rounded-pill"
+            onclick="openFeedbackModal('{{ donation.donation_id }}')"
+          >
+            💬 Give Feedback
+          </button>
           {% endif %} {% else %}
-
-          <div class="mt-3 text-muted small text-end">
-            Feedback available after completion
-          </div>
+          <span class="text-muted small">Feedback after completion</span>
           {% endif %}
         </div>
       </div>
@@ -65,60 +109,69 @@
   </div>
 
   {% else %}
-  <div class="alert alert-info text-center">
-    <h4>You haven't claimed any donations yet</h4>
-    <p>Browse available donations and claim items that match your needs!</p>
-    <a href="/donations" class="btn btn-success mt-2">Browse Donations</a>
+  <div class="empty-state">
+    <div class="empty-state-icon">📋</div>
+    <h4>No Claims Found</h4>
+    <p>
+      You haven't claimed any donations yet. Browse available donations to get
+      started!
+    </p>
+    <a href="/donations" class="btn btn-success mt-2 rounded-pill"
+      >Browse Donations</a
+    >
   </div>
   {% endif %}
 </div>
 
-<!-- ================= Feedback Modal ================= -->
-<div class="modal fade" id="feedbackModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="feedbackModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content rounded-4">
       <div class="modal-header bg-success text-white">
         <h5 class="modal-title">Leave Feedback</h5>
         <button
-          type="button"
-          class="btn-close"
+          class="btn-close btn-close-white"
           data-bs-dismiss="modal"
         ></button>
       </div>
-      <form action="" method="POST" id="feedbackForm">
+
+      <form method="POST" id="feedbackForm">
         <div class="modal-body">
-          <div class="mb-3 text-center">
-            <label class="form-label d-block mb-2"
-              ><strong>Rating</strong></label
-            >
+          <div class="text-center mb-3">
+            <label class="form-label"><strong>Rating</strong></label>
             <div id="starRating">
               {% for i in range(1,6) %}
               <i
                 class="bi bi-star fs-3 text-warning rating-star"
+                style="cursor: pointer"
                 data-value="{{ i }}"
               ></i>
               {% endfor %}
             </div>
-            <input type="hidden" name="rating" id="ratingInput" required />
+            <input type="hidden" id="ratingInput" name="rating" required />
           </div>
+
           <div class="mb-3">
-            <label class="form-label"><strong>Feedback</strong></label>
+            <label><strong>Feedback</strong></label>
             <textarea
               name="comments"
+              rows="4"
               class="form-control"
-              rows="3"
+              placeholder="How was your experience with this donor?"
               required
             ></textarea>
           </div>
         </div>
+
         <div class="modal-footer">
-          <button type="submit" class="btn btn-success">Submit</button>
           <button
             type="button"
-            class="btn btn-secondary"
+            class="btn btn-outline-secondary rounded-pill"
             data-bs-dismiss="modal"
           >
             Cancel
+          </button>
+          <button type="submit" class="btn btn-success rounded-pill">
+            Submit Feedback
           </button>
         </div>
       </form>
@@ -127,15 +180,33 @@
 </div>
 
 <script>
-  // Star rating interaction
-  document.addEventListener("DOMContentLoaded", function () {
+  /* Feedback modal setup */
+  function openFeedbackModal(donationId) {
+    const form = document.getElementById("feedbackForm");
+    form.action = `/feedback/${donationId}`;
+
+    // Reset star rating
     const stars = document.querySelectorAll(".rating-star");
-    const ratingInput = document.getElementById("ratingInput");
+    const input = document.getElementById("ratingInput");
+    input.value = "";
+    stars.forEach((s) => {
+      s.classList.remove("bi-star-fill");
+      s.classList.add("bi-star");
+    });
+
+    new bootstrap.Modal(document.getElementById("feedbackModal")).show();
+  }
+
+  /* Star rating logic */
+  document.addEventListener("DOMContentLoaded", () => {
+    const stars = document.querySelectorAll(".rating-star");
+    const input = document.getElementById("ratingInput");
 
     stars.forEach((star) => {
       star.addEventListener("click", () => {
         const value = star.dataset.value;
-        ratingInput.value = value;
+        input.value = value;
+
         stars.forEach((s) => {
           s.classList.toggle("bi-star-fill", s.dataset.value <= value);
           s.classList.toggle("bi-star", s.dataset.value > value);
@@ -143,22 +214,19 @@
       });
     });
 
-    // prevent submitting without selecting a rating
-    const form = document.getElementById("feedbackForm");
-    form.addEventListener("submit", (e) => {
-      if (!ratingInput.value) {
-        e.preventDefault();
-        alert("Please select a star rating before submitting!");
-      }
+    /* Self-pickup button disable logic */
+    const selfPickupForms = document.querySelectorAll(".self-pickup-form");
+
+    selfPickupForms.forEach((form) => {
+      form.addEventListener("submit", function () {
+        const button = form.querySelector("button");
+        button.disabled = true;
+        button.innerHTML = `
+          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          Processing...
+        `;
+      });
     });
   });
-
-  // Dynamically set form action
-  function openFeedbackModal(donationId) {
-    const form = document.getElementById("feedbackForm");
-    form.action = `/feedback/${donationId}`;
-    const modal = new bootstrap.Modal(document.getElementById("feedbackModal"));
-    modal.show();
-  }
 </script>
 {% endblock %}
